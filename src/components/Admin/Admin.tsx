@@ -197,10 +197,12 @@ export function Admin() {
           <SelectContent>
             <SelectItem value="name">По названию</SelectItem>
             <SelectItem value="id">По ID</SelectItem>
+            <SelectItem value="id">По ID</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div className="flex justify-end mb-10">
+
         <select
           onChange={changeLanguage}
           value={i18n.language}
