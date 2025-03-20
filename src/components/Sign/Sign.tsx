@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { usePostRequest } from "../hooks/usePostRequest";
 import { useNavigate } from "react-router-dom";
-import eye from '/eye.svg';
-import EyeClosed from '/eye-slash.svg';
+import eye from "/eye.svg";
+import EyeClosed from "/eye-slash.svg";
 
 type LoginResponse = {
   success: boolean;
@@ -19,7 +19,7 @@ export function Sign() {
   const [showPassword, setShowPassword] = useState(false);
   const { loading, error, postRequest } = usePostRequest<LoginResponse>(
     "http://192.168.202.153:8000/auth/sign",
-    false
+    false,
   );
 
   const navigate = useNavigate();
@@ -28,23 +28,23 @@ export function Sign() {
     e.preventDefault();
 
     try {
-        const response = await postRequest({ login, password, phone });
-      
-        if (!response) {
-          console.error("Ошибка: пустой ответ от сервера");
-          return;
-        }
-      
-        if (response.accessToken && response.refreshToken) {
-          localStorage.setItem("accessToken", response.accessToken);
-          localStorage.setItem("refreshToken", response.refreshToken);
-          navigate("/"); 
-        } else {
-          console.error("Ошибка: сервер не вернул accessToken");
-        }
-      } catch (err) {
-        console.error("Ошибка при отправке запроса:", err);
-      }      
+      const response = await postRequest({ login, password, phone });
+
+      if (!response) {
+        console.error("Ошибка: пустой ответ от сервера");
+        return;
+      }
+
+      if (response.accessToken && response.refreshToken) {
+        localStorage.setItem("accessToken", response.accessToken);
+        localStorage.setItem("refreshToken", response.refreshToken);
+        navigate("/");
+      } else {
+        console.error("Ошибка: сервер не вернул accessToken");
+      }
+    } catch (err) {
+      console.error("Ошибка при отправке запроса:", err);
+    }
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,7 +73,10 @@ export function Sign() {
         <p className="text-sm max-[400px]:text-lg text-gray-600 dark:text-gray-400 text-center mb-4 sm:mb-5">
           Enter your details below
         </p>
-        <form onSubmit={handleSubmit} className="flex flex-col w-full gap-4 sm:gap-5">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col w-full gap-4 sm:gap-5"
+        >
           <input
             value={login}
             onChange={(e) => setLogin(e.target.value)}
@@ -107,7 +110,11 @@ export function Sign() {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-2 top-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 max-[460px]:text-xs"
             >
-              <img src={showPassword ? EyeClosed : eye} alt="Toggle Password Visibility" className="w-5 h-5 dark:invert" />
+              <img
+                src={showPassword ? EyeClosed : eye}
+                alt="Toggle Password Visibility"
+                className="w-5 h-5 dark:invert"
+              />
             </button>
           </div>
 
@@ -115,7 +122,9 @@ export function Sign() {
             type="submit"
             className="bg-blue-600 dark:bg-blue-500 text-white rounded-lg px-4 sm:px-5 py-2 font-semibold 
                        hover:bg-blue-700 dark:hover:bg-blue-600 transition-all duration-300 max-[460px]:text-sm"
-            disabled={!login || !phone || phone.length < 12 || !password || loading}
+            disabled={
+              !login || !phone || phone.length < 12 || !password || loading
+            }
           >
             {loading ? "Loading..." : "Sign In"}
           </button>

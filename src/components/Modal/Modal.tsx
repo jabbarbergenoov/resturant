@@ -21,13 +21,17 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   return (
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-      onClick={onClose} 
+      onClick={onClose}
     >
       <div
         className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-[90%] max-w-md p-6 relative animate-fadeIn"
-        onClick={(e) => e.stopPropagation()} 
+        onClick={(e) => e.stopPropagation()}
       >
-        {title && <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">{title}</h2>}
+        {title && (
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+            {title}
+          </h2>
+        )}
 
         <div className="mt-4 text-gray-700 dark:text-gray-300">{children}</div>
 
