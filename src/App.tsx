@@ -1,4 +1,10 @@
-import { BrowserRouter as Router, Routes, Route, Link, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Link,
+  Navigate,
+} from "react-router-dom";
 import "./App.css";
 import { Login } from "./components/Login/Login";
 import { Resturant } from "./components/Resturant/Resturant";
@@ -17,12 +23,14 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-all">
-    
         <Routes>
           <Route path="/" element={<Navigate to="/menu" />} />
           <Route path="/menu" element={<Resturant />} />
           <Route path="/sign" element={<Sign />} />
-          <Route path="/admin" element={token ? <Admin /> : <Navigate to="/menu" />} />
+          <Route
+            path="/admin"
+            element={token ? <Admin /> : <Navigate to="/menu" />}
+          />
           <Route path="/login" element={<Login />} />
         </Routes>
       </div>

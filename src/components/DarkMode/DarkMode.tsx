@@ -8,7 +8,7 @@ interface DarModeProps {
 
 const DarkMode: React.FC<DarModeProps> = ({ className }) => {
   const [theme, setTheme] = useState<string>(
-    localStorage.getItem("theme") || "light"
+    localStorage.getItem("theme") || "light",
   );
 
   useEffect(() => {
@@ -25,7 +25,7 @@ const DarkMode: React.FC<DarModeProps> = ({ className }) => {
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       className={clsx(
         "p-2 rounded-full dark:bg-gray-800 transition",
-        className
+        className,
       )}
     >
       {theme === "dark" ? (
