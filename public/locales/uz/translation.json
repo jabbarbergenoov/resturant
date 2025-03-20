@@ -1,0 +1,17 @@
+{
+  "add_category": "Kategoriya qo'shish",
+  "edit_category": "Kategoriyani tahrirlash",
+  "select_language": "Tilni tanlang",
+  "search_placeholder": "Qidirish...",
+  "search_by_name": "Nomi bo‘yicha",
+  "search_by_id": "ID bo‘yicha",
+  "select_search_field": "Qidiruv maydonini tanlang",
+  "created_at": "Yaratilgan:",
+  "updated_at": "Yangilangan:",
+  "name_uz": "Nomi (O'zbek)",
+  "name_kr": "Nomi (Qoraqalpoq)",
+  "name_ru": "Nomi (Rus)",
+  "name_en": "Nomi (Ingliz)",
+  "add": "Qo‘shish",
+  "save": "Saqlash"
+}

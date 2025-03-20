@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Modal } from "../Modal/Modal";
 import { usePatchRequest } from "../hooks/usePatch";
 import { usePostRequest } from "../hooks/usePostRequest";
@@ -6,7 +6,16 @@ import DarkMode from "../DarkMode/DarkMode";
 import { useFetch } from "../hooks/useFetch";
 import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/DropDown";
+import { Loader } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+} from "@/components/ui/DropDown";
 import {
   Select,
   SelectContent,
@@ -23,15 +32,16 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
 import trash from "/trash.svg";
 import pencil from "/pencil.svg";
 
 interface Category {
   id: number;
-  name_uz: string;
-  name_kr: string;
-  name_ru: string;
-  name_en: string;
+  name_uz?: string | null;
+  name_kr?: string | null;
+  name_ru?: string | null;
+  name_en?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -40,18 +50,20 @@ export function Admin() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [isEdit, setIsEdit] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [searchField, setSearchField] = useState("name"); // Поле для поиска
-
+  const [_, setCategories] = useState<Category[]>([]);
+  const [searchField, setSearchField] = useState("name");
+  const lang = localStorage.getItem("i18nextLng") || "en";
   const {
     data: categorieData,
     loading,
     error,
     refetch,
-  } = useFetch<{ id: number; name: string }[]>(
-    "http://192.168.202.153:8000/categorie",
-    { lang_code: "en", [searchField]: search },
-  );
+  } = useFetch<
+    { id: number; name: string; created_at: string; updated_at: string }[]
+  >("http://192.168.202.153:8000/categorie", {
+    lang_code: lang,
+    [searchField]: search,
+  });
 
   const { patchRequest, loading: patchLoading } = usePatchRequest(
     "http://192.168.202.153:8000/categorie",
@@ -60,7 +72,13 @@ export function Admin() {
   const { postRequest } = usePostRequest(
     "http://192.168.202.153:8000/categorie",
   );
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    id?: number | undefined;
+    name_uz: string;
+    name_kr: string;
+    name_ru: string;
+    name_en: string;
+  }>({
     name_uz: "",
     name_kr: "",
     name_ru: "",
@@ -69,8 +87,8 @@ export function Admin() {
 
   const { t, i18n } = useTranslation();
 
-  const changeLanguage = (event) => {
-    i18n.changeLanguage(event.target.value);
+  const changeLanguage = (language: string) => {
+    i18n.changeLanguage(language);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,7 +104,7 @@ export function Admin() {
     }
 
     const requestData = {
-      name_uz: formData.name_uz,
+      ...(formData.name_uz && { name_uz: formData.name_uz }),
       ...(formData.name_kr && { name_kr: formData.name_kr }),
       ...(formData.name_ru && { name_ru: formData.name_ru }),
       ...(formData.name_en && { name_en: formData.name_en }),
@@ -103,7 +121,7 @@ export function Admin() {
 
   const handleDelete = async (id: number) => {
     try {
-      const token = localStorage.getItem("accessToken"); // Подставь реальный токен
+      const token = localStorage.getItem("accessToken");
 
       const response = await fetch(
         `http://192.168.202.153:8000/categorie/${id}`,
@@ -123,7 +141,6 @@ export function Admin() {
         throw new Error("Ошибка при удалении");
       }
 
-      // Удаляем элемент из состояния
       setCategories((prev) => prev.filter((item) => item.id !== id));
     } catch (error) {
       console.error("Ошибка удаления:", error);
@@ -132,14 +149,15 @@ export function Admin() {
 
   const handleEdit = (category: Category) => {
     setFormData({
-      id: category.id, // Теперь ID добавляется правильно
-      name_uz: category.name_uz || "",
-      name_kr: category.name_kr || "",
-      name_ru: category.name_ru || "",
-      name_en: category.name_en || "",
+      id: category.id,
+      name_uz: category.name_uz || null,
+      name_kr: category.name_kr || null,
+      name_ru: category.name_ru || null,
+      name_en: category.name_en || null,
     });
     setIsEdit(true);
   };
+
   const handleUpdate = async (id: number, e: React.FormEvent) => {
     e.preventDefault();
 
@@ -150,7 +168,7 @@ export function Admin() {
 
     try {
       const requestData = {
-        id: formData.id, // ID включен в тело запроса
+        id: formData.id,
         names: {
           ru: formData.name_ru.trim(),
           en: formData.name_en.trim(),
@@ -163,7 +181,7 @@ export function Admin() {
 
       await patchRequest(requestData);
       setIsEdit(false);
-      refetch(); // Обновляем данные
+      refetch();
     } catch (error) {
       console.error("Ошибка обновления:", error);
     }
@@ -172,19 +190,52 @@ export function Admin() {
   return (
     <div className="p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold mb-4">Admin</h1>
-        <DarkMode />
+        <h1 className="text-2xl font-bold mb-4">{t("Admin")}</h1>
+        <div className="flex items-center gap-4">
+          <DarkMode />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setIsModalOpen(true)}>
+                {t("add_category")}
+              </DropdownMenuItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  {" "}
+                  {t("select_language")}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem onClick={() => changeLanguage("en")}>
+                    English
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => changeLanguage("ru")}>
+                    Русский
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => changeLanguage("uz")}>
+                    Uzbek
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => changeLanguage("kr")}>
+                    Karakalpak
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <div className="flex justify-end gap-5 mt-5 mb-5">
         <Input
-          placeholder="Поиск..."
+          placeholder={t("search_placeholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full"
         />
 
-        {/* Выбор критерия поиска */}
         <Select
           onValueChange={(value) => {
             setSearchField(value);
@@ -192,97 +243,84 @@ export function Admin() {
           }}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Выберите поле поиска" />
+            <SelectValue placeholder={t("select_search_field")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="name">По названию</SelectItem>
-            <SelectItem value="id">По ID</SelectItem>
-            <SelectItem value="id">По ID</SelectItem>
+            <SelectItem value="name">{t("search_by_name")}</SelectItem>
+            <SelectItem value="id">{t("search_by_id")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
-      <div className="flex justify-end mb-10">
 
-        <select
-          onChange={changeLanguage}
-          value={i18n.language}
-          className="px-4 py-2 border rounded-lg dark:bg-gray-800 dark:text-white"
-        >
-          <option value="en">English</option>
-          <option value="ru">Русский</option>
-        </select>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition dark:bg-gray-800 "
-        >
-          Добавить категорию
-        </button>
-      </div>
+      {loading ? (
+        <div className="flex justify-center items-center py-10">
+          <Loader className="animate-spin w-10 h-10 text-gray-500" />
+        </div>
+      ) : error ? (
+        <div className="text-red-500 text-center py-10">{error}</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {categorieData &&
+            categorieData.map((e) => (
+              <Card
+                key={e.id}
+                className="p-2 dark:bg-gray-900 bg-white shadow-lg rounded-xl flex flex-col justify-between"
+              >
+                <CardHeader className="border-b pb-3">
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-lg font-semibold">
+                      {e.name}
+                    </CardTitle>
+                    <CardDescription className="text-gray-500 text-sm">
+                      ID: {e.id}
+                    </CardDescription>
+                  </div>
+                </CardHeader>
 
+                <CardContent className="mt-3 flex flex-col space-y-2">
+                  <div className="flex justify-between text-sm text-gray-500">
+                    <span className="font-medium">{t("created_at")}</span>
+                    <span>{new Date(e.created_at).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-500">
+                    <span className="font-medium">{t("updated_at")}</span>
+                    <span>{new Date(e.updated_at).toLocaleString()}</span>
+                  </div>
+                </CardContent>
 
-      
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {categorieData &&
-          categorieData.map((e) => (
-            <Card
-              key={e.id}
-              className="p-2 dark:bg-gray-900 bg-white shadow-lg rounded-xl flex flex-col justify-between"
-            >
-              <CardHeader className="border-b pb-3">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-lg font-semibold">
-                    {e.name}
-                  </CardTitle>
-                  <CardDescription className="text-gray-500 text-sm">
-                    ID: {e.id}
-                  </CardDescription>
-                </div>
-              </CardHeader>
-
-              <CardContent className="mt-3 flex flex-col space-y-2">
-                <div className="flex justify-between text-sm text-gray-500">
-                  <span className="font-medium">Создано:</span>
-                  <span>{new Date(e.created_at).toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-sm text-gray-500">
-                  <span className="font-medium">Обновлено:</span>
-                  <span>{new Date(e.updated_at).toLocaleString()}</span>
-                </div>
-              </CardContent>
-
-              <CardFooter className="mt-4 flex justify-end gap-5">
-                <Button
-                  variant="outline"
-                  onClick={() => handleEdit(e)}
-                  className=" hover:bg-gray-200 hover:text-white transition px-3 py-2 rounded-lg flex items-center dark:bg-gray-900"
-                >
-                  <img
-                    src={pencil}
-                    alt="Edit"
-                    className="w-4 h-4 mr-2 dark:filter dark:invert"
-                  />
-                </Button>
-                <Button
-                  onClick={() => handleDelete(e.id)}
-                  variant="outline"
-                  className=" hover:bg-gray-200 hover:text-white transition px-3 py-2 rounded-lg flex items-center dark:bg-gray-900"
-                >
-                  <img
-                    src={trash}
-                    alt="Edit"
-                    className="w-4 h-4 mr-2 dark:filter dark:invert"
-                  />
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-      </div>
+                <CardFooter className="mt-4 flex justify-end gap-5">
+                  <Button
+                    variant="outline"
+                    onClick={() => handleEdit(e)}
+                    className="hover:bg-gray-200 hover:text-white transition px-3 py-2 bg-green-700 rounded-lg flex items-center dark:bg-gray-900"
+                  >
+                    <img
+                      src={pencil}
+                      alt="Edit"
+                      className="w-4 h-4 filter invert"
+                    />
+                  </Button>
+                  <Button
+                    onClick={() => handleDelete(e.id)}
+                    variant="outline"
+                    className="hover:bg-gray-200 bg-red-500 hover:text-white transition px-3 py-2 rounded-lg flex items-center dark:bg-red-500"
+                  >
+                    <img
+                      src={trash}
+                      alt="Delete"
+                      className="w-4 h-4  dark:filter invert"
+                    />
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+        </div>
+      )}
 
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Добавить категорию"
+        title={t("add_category")}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="mb-4">
@@ -290,7 +328,7 @@ export function Admin() {
               htmlFor="name_uz"
               className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >
-              Название (узбекский) *
+              {t("name_uz")}
             </label>
             <input
               id="name_uz"
@@ -307,7 +345,7 @@ export function Admin() {
               htmlFor="name_kr"
               className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >
-              Название (karakalpak)
+              {t("name_kr")}
             </label>
             <input
               id="name_kr"
@@ -324,7 +362,7 @@ export function Admin() {
               htmlFor="name_ru"
               className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >
-              Название (русский)
+              {t("name_ru")}
             </label>
             <input
               id="name_ru"
@@ -342,7 +380,7 @@ export function Admin() {
               htmlFor="name_en"
               className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >
-              Название (английский)
+              {t("name_en")}
             </label>
             <input
               id="name_en"
@@ -357,17 +395,24 @@ export function Admin() {
             type="submit"
             className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 font-semibold hover:bg-blue-700 transition"
           >
-            Добавить
+            {t("add")}
           </button>
         </form>
       </Modal>
+
       <Modal
         isOpen={isEdit}
         onClose={() => setIsEdit(false)}
-        title="Редактировать категорию"
+        title={t("edit_category")}
       >
         <form
-          onSubmit={(e) => handleUpdate(formData.id, e)}
+          onSubmit={(e) => {
+            if (formData.id !== undefined) {
+              handleUpdate(formData.id, e);
+            } else {
+              console.error("Ошибка: ID не задан");
+            }
+          }}
           className="space-y-4"
         >
           <div className="mb-4">
@@ -375,7 +420,7 @@ export function Admin() {
               htmlFor="name_uz"
               className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >
-              Название (узбекский) *
+              {t("name_uz")}
             </label>
             <Input
               id="name_uz"
@@ -391,53 +436,58 @@ export function Admin() {
               htmlFor="name_ru"
               className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >
-              Название (русский) *
+              {t("name_ru")}
             </label>
             <Input
               id="name_ru"
               name="name_ru"
               value={formData.name_ru}
               onChange={handleChange}
-              required
               className="input"
             />
+          </div>
 
+          <div className="mb-4">
             <label
               htmlFor="name_en"
               className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >
-              Название (English) *
+              {t("name_en")}
             </label>
             <Input
               id="name_en"
               name="name_en"
               value={formData.name_en}
               onChange={handleChange}
-              required
               className="input"
             />
+          </div>
 
+          <div className="mb-4">
             <label
               htmlFor="name_kr"
               className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
             >
-              Название (Karakalpak) *
+              {t("name_kr")}
             </label>
             <Input
               id="name_kr"
               name="name_kr"
               value={formData.name_kr}
               onChange={handleChange}
-              required
               className="input"
             />
           </div>
-
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 font-semibold hover:bg-blue-700 transition"
+            className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 font-semibold hover:bg-blue-700 transition flex items-center justify-center"
+            disabled={patchLoading}
           >
-            Сохранить
+            {patchLoading ? (
+              <Loader className="w-5 h-5 animate-spin" />
+            ) : (
+              t("save")
+            )}
           </button>
         </form>
       </Modal>
