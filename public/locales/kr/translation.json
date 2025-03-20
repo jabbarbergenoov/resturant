@@ -1,0 +1,17 @@
+{
+  "add_category": "Kategoriya qosıw",
+  "edit_category": "Kategoriya ózgertiw",
+  "select_language": "Til tanlaw",
+  "search_placeholder": "Izlew...",
+  "search_by_name": "Atawı boyınsha",
+  "search_by_id": "ID boyınsha",
+  "select_search_field": "Izlew maydanın saylaw",
+  "created_at": "Jasalg'an:",
+  "updated_at": "Jańalangan:",
+  "name_uz": "Atawı (O'zbek)",
+  "name_kr": "Atawı (Qaraqalpaq)",
+  "name_ru": "Atawı (Rus)",
+  "name_en": "Atawı (Ingliz)",
+  "add": "Qosıw",
+  "save": "Saqlaw"
+}

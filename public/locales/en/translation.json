@@ -1,3 +1,17 @@
 {
-  "welcome": "Welcome to my app"
+  "add_category": "Add Category",
+  "edit_category": "Edit Category",
+  "select_language": "Select Language",
+  "search_placeholder": "Search...",
+  "search_by_name": "By Name",
+  "search_by_id": "By ID",
+  "select_search_field": "Select search field",
+  "created_at": "Created:",
+  "updated_at": "Updated:",
+  "name_uz": "Name (Uzbek)",
+  "name_kr": "Name (Karakalpak)",
+  "name_ru": "Name (Russian)",
+  "name_en": "Name (English)",
+  "add": "Add",
+  "save": "Save"
 }
