@@ -7,6 +7,7 @@ import { useFetch } from "../hooks/useFetch";
 import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { Loader } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,10 +39,10 @@ import pencil from "/pencil.svg";
 
 interface Category {
   id: number;
-  name_uz?: string | null;
-  name_kr?: string | null;
-  name_ru?: string | null;
-  name_en?: string | null;
+  name_uz?: string ;
+  name_kr?: string ;
+  name_ru?: string ;
+  name_en?: string ;
   created_at: string;
   updated_at: string;
 }
@@ -86,6 +87,8 @@ export function Admin() {
   });
 
   const { t, i18n } = useTranslation();
+
+  const navigate = useNavigate();
 
   const changeLanguage = (language: string) => {
     i18n.changeLanguage(language);
@@ -150,9 +153,13 @@ export function Admin() {
   const handleEdit = (category: Category) => {
     setFormData({
       id: category.id,
+      //@ts-ignore
       name_uz: category.name_uz || null,
+      //@ts-ignore
       name_kr: category.name_kr || null,
+      //@ts-ignore
       name_ru: category.name_ru || null,
+      //@ts-ignore
       name_en: category.name_en || null,
     });
     setIsEdit(true);
@@ -185,6 +192,10 @@ export function Admin() {
     } catch (error) {
       console.error("Ошибка обновления:", error);
     }
+  };
+
+  const handleCardClick = (category: Category) => {
+    navigate(`/category/${category.id}`);
   };
 
   return (
@@ -264,7 +275,8 @@ export function Admin() {
             categorieData.map((e) => (
               <Card
                 key={e.id}
-                className="p-2 dark:bg-gray-900 bg-white shadow-lg rounded-xl flex flex-col justify-between"
+                onClick={() => handleCardClick(e)} 
+                className="p-2 cursor-pointer dark:bg-gray-900 bg-white shadow-lg rounded-xl flex flex-col justify-between"
               >
                 <CardHeader className="border-b pb-3">
                   <div className="flex justify-between items-center">
@@ -291,8 +303,11 @@ export function Admin() {
                 <CardFooter className="mt-4 flex justify-end gap-5">
                   <Button
                     variant="outline"
-                    onClick={() => handleEdit(e)}
-                    className="hover:bg-gray-200 hover:text-white transition px-3 py-2 bg-green-700 rounded-lg flex items-center dark:bg-gray-900"
+                    onClick={(event) => {
+                      event.stopPropagation(); // Остановка всплытия события
+                      handleEdit(e.id);
+                    }}
+                    className="hover:bg-green-800 hover:text-white transition px-3 py-2 bg-green-700 rounded-lg flex items-center dark:bg-green-600 dark:hover:bg-green-700"
                   >
                     <img
                       src={pencil}
@@ -301,9 +316,12 @@ export function Admin() {
                     />
                   </Button>
                   <Button
-                    onClick={() => handleDelete(e.id)}
+                    onClick={(event) => {
+                      event.stopPropagation(); // Остановка всплытия события
+                      handleDelete(e.id);
+                    }}
                     variant="outline"
-                    className="hover:bg-gray-200 bg-red-500 hover:text-white transition px-3 py-2 rounded-lg flex items-center dark:bg-red-500"
+                    className="hover:bg-red-800 bg-red-500 hover:text-white transition px-3 py-2 rounded-lg flex items-center dark:bg-red-500 dark:hover:bg-red-800"
                   >
                     <img
                       src={trash}
@@ -316,6 +334,7 @@ export function Admin() {
             ))}
         </div>
       )}
+
 
       <Modal
         isOpen={isModalOpen}
@@ -427,7 +446,7 @@ export function Admin() {
               name="name_uz"
               value={formData.name_uz}
               onChange={handleChange}
-              className="input"
+              className="input dark:bg-gray-700 dark:border-gray-600"
             />
           </div>
 
@@ -443,7 +462,7 @@ export function Admin() {
               name="name_ru"
               value={formData.name_ru}
               onChange={handleChange}
-              className="input"
+              className="input dark:bg-gray-700 dark:border-gray-600"
             />
           </div>
 
@@ -459,7 +478,7 @@ export function Admin() {
               name="name_en"
               value={formData.name_en}
               onChange={handleChange}
-              className="input"
+              className="input dark:bg-gray-700 dark:border-gray-600"
             />
           </div>
 
@@ -475,7 +494,7 @@ export function Admin() {
               name="name_kr"
               value={formData.name_kr}
               onChange={handleChange}
-              className="input"
+              className="input dark:bg-gray-700 dark:border-gray-600"
             />
           </div>
           <button

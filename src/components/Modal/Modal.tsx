@@ -37,7 +37,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
 
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200"
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 hover:bg-gray-300 rounded-[50%] p-2 dark:hover:text-gray-200 duration-75"
         >
           ✖
         </button>

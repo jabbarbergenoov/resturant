@@ -26,11 +26,13 @@
     "react-i18next": "^15.4.1",
     "react-input-mask": "^2.0.4",
     "react-router-dom": "^7.3.0",
+    "shadcn": "^2.4.0-canary.17",
     "tailwind-merge": "^3.0.2",
     "tailwind-variants": "^1.0.0",
     "tailwindcss": "^4.0.14",
     "tailwindcss-animate": "^1.0.7",
-    "tw-animate-css": "^1.2.4"
+    "tw-animate-css": "^1.2.4",
+    "typography": "^0.16.24"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
