@@ -116,8 +116,7 @@ export function CategoryDetails() {
   };
 
   return (
-    <div className="p-6 h-[100%] relative">
-        
+    <div className="p-6 pb-28 relative">
             <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold mb-4">{t("Admin")}</h1>
         <div className="flex items-center gap-4">
@@ -128,7 +127,7 @@ export function CategoryDetails() {
                 <Menu className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent className="dark:bg-gray-900" align="end">
               <DropdownMenuItem onClick={() => setIsModalOpen(true)}>
                 {t("add_category")}
               </DropdownMenuItem>
@@ -160,12 +159,12 @@ export function CategoryDetails() {
         <CardHeader>
           <img src={pizzaImg} alt="" className="rounded-xl mt-2" />
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger  asChild>
               <Button variant="ghost" size="icon" className="absolute top-0 right-0">
                 <MoreVertical className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent className="dark:bg-gray-900" align="end">
               <DropdownMenuItem onClick={() => setIsModalOpen(true)}>
                 {t("edit_category")}
               </DropdownMenuItem>
@@ -185,10 +184,39 @@ export function CategoryDetails() {
           <Typography variant="p" className="text-gray-400">15000сум</Typography>
         </CardContent>
       </Card>
+      {/* <Card className="dark:bg-gray-800 mt-10 relative">
+        <CardHeader>
+          <img src={pizzaImg} alt="" className="rounded-xl mt-2" />
+          <DropdownMenu>
+            <DropdownMenuTrigger  asChild>
+              <Button variant="ghost" size="icon" className="absolute top-0 right-0">
+                <MoreVertical className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-gray-900" align="end">
+              <DropdownMenuItem onClick={() => setIsModalOpen(true)}>
+                {t("edit_category")}
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+            //   onClick={handleDelete} 
+              className="text-red-600">
+                {t("delete_category")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </CardHeader>
+        <CardContent>
+          <Typography variant="h4" className="border-t pt-5 dark:border-gray-700">
+Пеперенный
+          </Typography>
+          <Typography variant="p" className="text-gray-400">Жаренный сыр Моцарелла в кляре</Typography>
+          <Typography variant="p" className="text-gray-400">15000сум</Typography>
+        </CardContent>
+      </Card> */}
 
       <button
         onClick={() => navigate("/admin")}
-        className="mt-4 absolute left-[80%] bottom-[0%] bg-blue-600 text-white rounded-lg px-4 py-2 font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2"
+        className="mt-4 fixed left-[80%] bottom-[2%] bg-blue-600 text-white rounded-lg px-4 py-2 font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2"
       >
         <ArrowLeft className="w-5 h-5" />
       </button>

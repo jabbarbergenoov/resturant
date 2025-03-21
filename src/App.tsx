@@ -2,7 +2,6 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
-  Link,
   Navigate,
 } from "react-router-dom";
 import "./App.css";
@@ -15,7 +14,7 @@ import { Admin } from "./components/Admin/Admin";
 
 function App() {
   const [theme] = useState(localStorage.getItem("theme") || "light");
-  const [token, setToken] = useState(localStorage.getItem("accessToken"));
+  const [token, _] = useState(localStorage.getItem("accessToken"));
 
   useEffect(() => {
     localStorage.setItem("theme", theme);
@@ -23,7 +22,7 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-all">
+      <div className=" bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-all">
         <Routes>
           <Route path="/" element={<Navigate to="/menu" />} />
                   <Route path="/category/:id" element={<CategoryDetails />} />

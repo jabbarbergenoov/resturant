@@ -199,7 +199,7 @@ export function Admin() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 min-h-screen ">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold mb-4">{t("Admin")}</h1>
         <div className="flex items-center gap-4">
@@ -238,8 +238,8 @@ export function Admin() {
           </DropdownMenu>
         </div>
       </div>
-
-      <div className="flex justify-end gap-5 mt-5 mb-5">
+      <div className="flex-grow"> {/* Добавлено flex-grow для растягивания контента */}
+<div className="flex justify-end gap-5 mt-5 mb-5">
         <Input
           placeholder={t("search_placeholder")}
           value={search}
@@ -262,6 +262,8 @@ export function Admin() {
           </SelectContent>
         </Select>
       </div>
+</div>
+      
 
       {loading ? (
         <div className="flex justify-center items-center py-10">
@@ -304,7 +306,8 @@ export function Admin() {
                   <Button
                     variant="outline"
                     onClick={(event) => {
-                      event.stopPropagation(); // Остановка всплытия события
+                      event.stopPropagation(); 
+                      //@ts-ignore
                       handleEdit(e.id);
                     }}
                     className="hover:bg-green-800 hover:text-white transition px-3 py-2 bg-green-700 rounded-lg flex items-center dark:bg-green-600 dark:hover:bg-green-700"
@@ -317,7 +320,7 @@ export function Admin() {
                   </Button>
                   <Button
                     onClick={(event) => {
-                      event.stopPropagation(); // Остановка всплытия события
+                      event.stopPropagation();
                       handleDelete(e.id);
                     }}
                     variant="outline"
