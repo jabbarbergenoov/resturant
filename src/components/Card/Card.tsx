@@ -1,17 +1,37 @@
-type Card = {
+import {
+  Card as ShadCard,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+
+type CardProps = {
   name: string;
   description: string;
   price: string;
+  img?: string;
 };
 
-export function Card({ name, description, price }: Card) {
+export function Card({ name, description, price, img }: CardProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 transition-all">
-      <h3 className="text-lg font-medium text-gray-800 dark:text-white">
-        {name}
-      </h3>
-      <p className="text-gray-600 dark:text-gray-300">{description}</p>
-      <p className="text-blue-700 dark:text-blue-400 font-bold mt-2">{price}</p>
-    </div>
+    <ShadCard className="overflow-hidden shadow-md dark:bg-gray-800">
+      <CardHeader>
+        {img && (
+          <img
+            src={img}
+            alt={name}
+            className="w-full object-cover rounded-xl"
+          />
+        )}
+      </CardHeader>
+      <CardContent>
+        <CardTitle className="text-xl">{name}</CardTitle>
+        <CardDescription className="text-gray-400">
+          {description}
+        </CardDescription>
+        <p className="text-gray-400 dark:text-blue-400 font-bold">{price}</p>
+      </CardContent>
+    </ShadCard>
   );
 }

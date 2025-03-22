@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Modal } from "../Modal/Modal";
 import { usePatchRequest } from "../hooks/usePatch";
 import { usePostRequest } from "../hooks/usePostRequest";
@@ -6,7 +6,7 @@ import DarkMode from "../DarkMode/DarkMode";
 import { useFetch } from "../hooks/useFetch";
 import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
-import { Loader } from "lucide-react";
+import { ChevronLeft, Loader, ChevronUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -17,13 +17,6 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from "@/components/ui/DropDown";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -39,20 +32,21 @@ import pencil from "/pencil.svg";
 
 interface Category {
   id: number;
-  name_uz?: string ;
-  name_kr?: string ;
-  name_ru?: string ;
-  name_en?: string ;
+  name_uz?: string;
+  name_kr?: string;
+  name_ru?: string;
+  name_en?: string;
   created_at: string;
   updated_at: string;
 }
 
 export function Admin() {
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [isEdit, setIsEdit] = useState(false);
   const [_, setCategories] = useState<Category[]>([]);
-  const [searchField, setSearchField] = useState("name");
+  const [searchField, __] = useState("name");
   const lang = localStorage.getItem("i18nextLng") || "en";
   const {
     data: categorieData,
@@ -61,18 +55,16 @@ export function Admin() {
     refetch,
   } = useFetch<
     { id: number; name: string; created_at: string; updated_at: string }[]
-  >("http://192.168.202.153:8000/categorie", {
+  >("http://16.171.7.103:8000/categorie", {
     lang_code: lang,
     [searchField]: search,
   });
 
   const { patchRequest, loading: patchLoading } = usePatchRequest(
-    "http://192.168.202.153:8000/categorie",
+    "http://16.171.7.103:8000/categorie",
   );
 
-  const { postRequest } = usePostRequest(
-    "http://192.168.202.153:8000/categorie",
-  );
+  const { postRequest } = usePostRequest("http://16.171.7.103:8000/categorie");
   const [formData, setFormData] = useState<{
     id?: number | undefined;
     name_uz: string;
@@ -107,10 +99,10 @@ export function Admin() {
     }
 
     const requestData = {
-      ...(formData.name_uz && { name_uz: formData.name_uz }),
-      ...(formData.name_kr && { name_kr: formData.name_kr }),
-      ...(formData.name_ru && { name_ru: formData.name_ru }),
-      ...(formData.name_en && { name_en: formData.name_en }),
+      ...(formData.name_uz && { uz: formData.name_uz }),
+      ...(formData.name_kr && { kr: formData.name_kr }),
+      ...(formData.name_ru && { ru: formData.name_ru }),
+      ...(formData.name_en && { en: formData.name_en }),
     };
     try {
       await postRequest(requestData);
@@ -126,16 +118,13 @@ export function Admin() {
     try {
       const token = localStorage.getItem("accessToken");
 
-      const response = await fetch(
-        `http://192.168.202.153:8000/categorie/${id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+      const response = await fetch(`http://16.171.7.103:8000/categorie/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-      );
+      });
       if (response.ok) {
         refetch();
       }
@@ -198,6 +187,23 @@ export function Admin() {
     navigate(`/category/${category.id}`);
   };
 
+  const checkScrollTop = () => {
+    if (!showScrollButton && window.pageYOffset > 200) {
+      setShowScrollButton(true);
+    } else if (showScrollButton && window.pageYOffset <= 200) {
+      setShowScrollButton(false);
+    }
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", checkScrollTop);
+    return () => window.removeEventListener("scroll", checkScrollTop);
+  }, [showScrollButton]);
+
   return (
     <div className="p-6 min-h-screen ">
       <div className="flex items-center justify-between">
@@ -205,21 +211,23 @@ export function Admin() {
         <div className="flex items-center gap-4">
           <DarkMode />
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger className="dark:bg-gray-900" asChild>
               <Button variant="ghost" size="icon">
                 <Menu className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent className="dark:bg-gray-900" align="end">
               <DropdownMenuItem onClick={() => setIsModalOpen(true)}>
                 {t("add_category")}
               </DropdownMenuItem>
               <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  {" "}
+                <DropdownMenuSubTrigger className="flex  items-center w-full [&>*:last-child]:hidden">
+                  <ChevronLeft className="h-4 w-4 transition-transform data-[state=open]:rotate-90" />
+
                   {t("select_language")}
                 </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
+
+                <DropdownMenuSubContent className="dark:bg-gray-900">
                   <DropdownMenuItem onClick={() => changeLanguage("en")}>
                     English
                   </DropdownMenuItem>
@@ -238,32 +246,17 @@ export function Admin() {
           </DropdownMenu>
         </div>
       </div>
-      <div className="flex-grow"> {/* Добавлено flex-grow для растягивания контента */}
-<div className="flex justify-end gap-5 mt-5 mb-5">
-        <Input
-          placeholder={t("search_placeholder")}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full"
-        />
-
-        <Select
-          onValueChange={(value) => {
-            setSearchField(value);
-            refetch();
-          }}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder={t("select_search_field")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="name">{t("search_by_name")}</SelectItem>
-            <SelectItem value="id">{t("search_by_id")}</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="flex-grow">
+        {" "}
+        <div className="flex justify-end gap-5 mt-5 mb-5">
+          <Input
+            placeholder={t("search_placeholder")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full"
+          />
+        </div>
       </div>
-</div>
-      
 
       {loading ? (
         <div className="flex justify-center items-center py-10">
@@ -277,7 +270,7 @@ export function Admin() {
             categorieData.map((e) => (
               <Card
                 key={e.id}
-                onClick={() => handleCardClick(e)} 
+                onClick={() => handleCardClick(e)}
                 className="p-2 cursor-pointer dark:bg-gray-900 bg-white shadow-lg rounded-xl flex flex-col justify-between"
               >
                 <CardHeader className="border-b pb-3">
@@ -306,7 +299,7 @@ export function Admin() {
                   <Button
                     variant="outline"
                     onClick={(event) => {
-                      event.stopPropagation(); 
+                      event.stopPropagation();
                       //@ts-ignore
                       handleEdit(e.id);
                     }}
@@ -338,7 +331,6 @@ export function Admin() {
         </div>
       )}
 
-
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -357,6 +349,7 @@ export function Admin() {
               name="name_uz"
               value={formData.name_uz}
               onChange={handleChange}
+              required
               placeholder="Введите название"
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             />
@@ -373,6 +366,7 @@ export function Admin() {
               id="name_kr"
               name="name_kr"
               value={formData.name_kr}
+              required
               onChange={handleChange}
               placeholder="Введите название"
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
@@ -405,6 +399,7 @@ export function Admin() {
               {t("name_en")}
             </label>
             <input
+              required
               id="name_en"
               name="name_en"
               value={formData.name_en}
@@ -513,6 +508,14 @@ export function Admin() {
           </button>
         </form>
       </Modal>
+      {showScrollButton && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-10 right-10 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition"
+        >
+          <ChevronUp className="w-6 h-6" />
+        </button>
+      )}
     </div>
   );
 }

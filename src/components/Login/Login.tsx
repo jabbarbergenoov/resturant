@@ -18,7 +18,7 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { loading, error, postRequest } = usePostRequest<LoginResponse>(
-    "http://192.168.202.153:8000/auth/login",
+    "http://16.171.7.103:8000/auth/login",
     false,
   );
 
