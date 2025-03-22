@@ -25,7 +25,7 @@ function App() {
       <div className=" bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-all">
         <Routes>
           <Route path="/" element={<Navigate to="/menu" />} />
-                  <Route path="/category/:id" element={<CategoryDetails />} />
+          <Route path="/category/:id" element={<CategoryDetails />} />
           <Route path="/menu" element={<Resturant />} />
           <Route path="/sign" element={<Sign />} />
           <Route
