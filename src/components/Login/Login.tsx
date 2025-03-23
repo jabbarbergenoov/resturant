@@ -33,7 +33,7 @@ export function Login() {
       if (response?.accessToken && response?.refreshToken) {
         localStorage.setItem("accessToken", response.accessToken);
         localStorage.setItem("refreshToken", response.refreshToken);
-        navigate("/admin");
+        navigate("/navBottom");
       } else {
         console.error("Ошибка: сервер не вернул токены");
       }

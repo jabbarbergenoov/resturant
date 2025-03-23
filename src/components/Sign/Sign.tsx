@@ -48,15 +48,15 @@ export function Sign() {
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let rawValue = e.target.value.replace(/\D/g, ""); // Убираем все нечисловые символы
-    if (!rawValue.startsWith("998")) rawValue = "998"; // Гарантируем, что +998 всегда остаётся
-    if (rawValue.length > 12) return; // Ограничиваем ввод
+    let rawValue = e.target.value.replace(/\D/g, ""); 
+    if (!rawValue.startsWith("998")) rawValue = "998"; 
+    if (rawValue.length > 12) return; 
 
-    setPhone("+" + rawValue); // Обновляем состояние
+    setPhone("+" + rawValue); 
   };
 
   return (
-    <div className="flex justify-center w-screen items-center h-[80vh] bg-[url('/path-to-aesthetic-image.jpg')] bg-cover bg-center px-4">
+    <div className="flex justify-center w-screen items-center h-[100vh] bg-[url('/path-to-aesthetic-image.jpg')] bg-cover bg-center px-4">
       <div
         className="flex shadow-lg p-6 sm:p-8 w-full max-w-[400px] mx-auto justify-center rounded-2xl flex-col items-center 
                    bg-white/90 dark:bg-gray-800 backdrop-blur-md text-gray-900 dark:text-gray-100"
@@ -86,7 +86,6 @@ export function Sign() {
             placeholder="Enter your login"
           />
 
-          {/* Поле для телефона */}
           <input
             value={phone}
             onChange={handlePhoneChange}

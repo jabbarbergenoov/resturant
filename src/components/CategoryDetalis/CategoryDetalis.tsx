@@ -1,15 +1,23 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import DarkMode from "../DarkMode/DarkMode";
 import { useTranslation } from "react-i18next";
 import { Modal } from "../Modal/Modal";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Typography } from "@/components/ui/typography";
-import { ArrowLeft } from "lucide-react";
-import pizzaImg from "../../assets/images (1).jfif";
 import { MoreVertical } from "lucide-react";
 import { useFetch } from "../hooks/useFetch";
 import { motion, AnimatePresence } from "framer-motion";
+import { ArrowUp } from "lucide-react";
+import FoodImage from "../FoodImage/FoodImage";
+import { LoaderCircle } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +30,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { usePostRequest } from "../hooks/usePostRequest";
+
+interface Food {
+  id: number | string;
+  images: string[];
+  name: string;
+  description: string;
+  price?: number;
+}
+
 interface Category {
   id: number;
   name_uz?: string;
@@ -30,34 +47,37 @@ interface Category {
   name_en?: string;
   created_at: string;
   updated_at: string;
+  name:string
+}
+
+interface FormData {
+  names: {
+    ru: string;
+    en: string;
+    uz: string;
+    kr: string;
+  };
+  descriptions: {
+    ru: string;
+    en: string;
+    uz: string;
+    kr: string;
+  };
+  images?: (string | File)[];
+  price?: number;
+  categories?: number[];
 }
 
 export function CategoryDetails() {
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const { t, i18n } = useTranslation();
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [category, setCategory] = useState<Category | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [hiddenCategories, setHiddenCategories] = useState<number[]>([]);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
-  const [formData, setFormData] = useState<{
-    names?: {
-      ru: string;
-      en: string;
-      uz: string;
-      kr: string;
-    };
-    descriptions?: {
-      ru: string;
-      en: string;
-      uz: string;
-      kr: string;
-    };
-    images?: string[];
-    price?: number;
-    categories?: number[];
-  }>({
+  const [formData, setFormData] = useState<FormData>({
     names: { ru: "", en: "", uz: "", kr: "" },
     descriptions: { ru: "", en: "", uz: "", kr: "" },
     images: [],
@@ -68,7 +88,7 @@ export function CategoryDetails() {
   const lang = localStorage.getItem("i18nextLng") || "en";
 
   const {
-    data: categoriesList = [],
+    data: categoriesList = [], 
     loading,
     error,
   } = useFetch<Category[]>("http://16.171.7.103:8000/categorie", {
@@ -76,12 +96,30 @@ export function CategoryDetails() {
   });
 
   const {
-    data:foods,
+    data: foods,
     loading: foodsLoading,
-    error: foodsError
-  } = useFetch('http://16.171.7.103:8000/food' , {
+    error: foodsError,
+    refetch: foodsRefetch,
+  } = useFetch<Food[]>("http://16.171.7.103:8000/food", {
     lang_code: lang,
-  })
+  });
+
+  const checkScrollTop = () => {
+    if (!showScrollButton && window.pageYOffset > 200) {
+      setShowScrollButton(true);
+    } else if (showScrollButton && window.pageYOffset <= 200) {
+      setShowScrollButton(false);
+    }
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", checkScrollTop);
+    return () => window.removeEventListener("scroll", checkScrollTop);
+  }, [showScrollButton]);
 
   const filteredCategories = categoriesList
     ? categoriesList.filter((cat) =>
@@ -158,8 +196,9 @@ export function CategoryDetails() {
   const handleCategoryRemove = (categoryId: number) => {
     setSelectedCategoryIds((prev) => prev.filter((id) => id !== categoryId));
   };
-
-  const uploadImages = async () => {
+  const uploadImages = async (
+      //@ts-ignore
+    files: File[]) => {
     if (!formData?.images || formData.images.length === 0) {
       console.error("❌ Ошибка: Нет файлов для загрузки");
       return;
@@ -168,7 +207,7 @@ export function CategoryDetails() {
     const formDataToSend = new FormData();
 
     formData.images.forEach((file) => {
-      formDataToSend.append("files", file); 
+      formDataToSend.append("files", file);
     });
 
     try {
@@ -209,14 +248,16 @@ export function CategoryDetails() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    console.log("Form Data:", formData); // Log form data
+
     if (!formData.images?.length) {
       console.error("Ошибка: выберите изображение.");
       return;
     }
 
     try {
-      const file = formData.images[0]; 
-      const imageUrl = await uploadImages(file); 
+      const files = formData.images.filter((img): img is File => img instanceof File);
+      const imageUrl = await uploadImages(files);      
 
       if (!imageUrl) {
         console.error("Не удалось загрузить изображение.");
@@ -226,10 +267,12 @@ export function CategoryDetails() {
       const requestData = {
         names: formData.names,
         descriptions: formData.descriptions,
-        images: imageUrl, 
+        images: imageUrl,
         price: formData.price || 0,
-        categories: selectedCategoryIds, 
+        categories: selectedCategoryIds,
       };
+
+      console.log("Request Data:", requestData); // Log request data
 
       await postRequest(requestData);
 
@@ -241,7 +284,8 @@ export function CategoryDetails() {
         price: 0,
         categories: [],
       });
-      setSelectedCategoryIds([]); 
+      foodsRefetch();
+      setSelectedCategoryIds([]);
     } catch (error) {
       console.error("Ошибка при отправке запроса:", error);
     }
@@ -294,82 +338,81 @@ export function CategoryDetails() {
           </DropdownMenu>
         </div>
       </div>
-      {foods?.map((food) => (
-  <Card key={food.id} className="dark:bg-gray-800 mt-10 relative">
-    <CardHeader>
-    <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-    <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
-    <div className="overflow-x-auto flex gap-2 p-2">
-      
-    {Array.isArray(food.images) &&
-  food.images.map((img, index) => {
-    console.log("Рендер изображения:", img);
-    return (
-      <img
-      key={index} // Теперь ключ уникален
-      src={`http://16.171.7.103:8000/food/image/${img}`}
-        alt={food.name || "Изображение"}
-        className="rounded-xl w-32 h-32 object-cover flex-shrink-0"
-        onError={(e) => {
-          console.error("Ошибка загрузки изображения:", img);
-          e.currentTarget.style.display = "none";
-        }}
-      />
-    );
-  })}
+      {foodsLoading ? (
+  <div className="flex justify-center items-center h-40">
+    <LoaderCircle className="animate-spin text-gray-500" size={32} />
+  </div>
+) : foodsError ? (
+  <div className="text-center text-red-600">{foodsError}</div>
+) : (
+  foods?.map((food) => (
+    <Card key={food.id} className="dark:bg-gray-800 mt-10 relative">
+      <CardHeader>
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
+            <div className="overflow-x-auto flex gap-2">
+              {Array.isArray(food.images) && food.images.length > 0 ? (
+                food.images.length === 1 ? (
+                  <FoodImage img={food.images[0]} 
+                  //@ts-ignore
+                  token={token} />
+                ) : (
+                  <Carousel className="w-full max-w-md">
+                    <CarouselContent>
+                      {food.images.map((img, index) => (
+                        <CarouselItem key={index} className="p-2 flex justify-center">
+                          <FoodImage img={img} 
+                          //@ts-ignore
+                          token={token} />
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
 
+                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-1 bg-white p-2 rounded-full shadow-md">
+                      {"<"}
+                    </CarouselPrevious>
+                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-1 bg-white p-2 rounded-full shadow-md">
+                      {">"}
+                    </CarouselNext>
+                  </Carousel>
+                )
+              ) : (
+                <p>Нет изображений</p>
+              )}
+            </div>
+          </div>
+        </div>
 
-</div>
-
-
-</div>
-
-</div>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-0 right-0"
-          >
-            <MoreVertical className="h-5 w-5" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="dark:bg-gray-900" align="end">
-          <DropdownMenuItem onClick={() => setIsModalOpen(true)}>
-            {t("edit_category")}
-          </DropdownMenuItem>
-          <DropdownMenuItem className="text-red-600">
-            {t("delete_category")}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </CardHeader>
-    <CardContent>
-      <Typography
-        variant="h4"
-        className="border-t pt-5 dark:border-gray-700"
-      >
-        {food.name}
-      </Typography>
-      <Typography variant="p" className="text-gray-400">
-        {food.description}
-      </Typography>
-      <Typography variant="p" className="text-gray-400">
-        {food.price ? `${food.price} сум` : "Цена не указана"}
-      </Typography>
-    </CardContent>
-  </Card>
-))}
-
-
-      <button
-        onClick={() => navigate("/admin")}
-        className="mt-4 fixed left-[80%] bottom-[2%] bg-blue-600 text-white rounded-lg px-4 py-2 font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2"
-      >
-        <ArrowLeft className="w-5 h-5" />
-      </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="absolute top-0 right-0">
+              <MoreVertical className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="dark:bg-gray-900" align="end">
+            <DropdownMenuItem onClick={() => setIsModalOpen(true)}>
+              {t("edit_category")}
+            </DropdownMenuItem>
+            <DropdownMenuItem className="text-red-600">
+              {t("delete_category")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </CardHeader>
+      <CardContent>
+        <Typography variant="h4" className="border-t pt-2 dark:border-gray-700">
+          {food.name}
+        </Typography>
+        <Typography variant="p" className="text-gray-400">
+          {food.description}
+        </Typography>
+        <Typography variant="p" className="text-gray-400">
+          {food.price ? `${food.price} сум` : "Цена не указана"}
+        </Typography>
+      </CardContent>
+    </Card>
+  ))
+)}
 
       <Modal
         isOpen={isModalOpen}
@@ -380,7 +423,6 @@ export function CategoryDetails() {
           onSubmit={handleSubmit}
           className="h-90 overflow-y-scroll space-y-6 p-4"
         >
-          {/* Поле поиска */}
           <div className="mb-6">
             <label
               htmlFor="search"
@@ -404,37 +446,37 @@ export function CategoryDetails() {
           </div>
 
           {/* Блок выбранных категорий */}
-          {selectedCategoryIds.length > 0 && (
-            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900 rounded-lg">
-              <div className="flex flex-wrap gap-2 mt-2">
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {selectedCategoryIds.map((categoryId) => {
-                    const category = categoriesList.find(
-                      (cat) => cat.id === categoryId,
-                    );
-                    return (
-                      category && (
-                        <div
-                          key={category.id}
-                          className="flex items-center gap-2 bg-blue-100 dark:bg-blue-800 px-3 py-1 rounded-full"
-                        >
-                          <span className="text-gray-900 dark:text-white">
-                            {category.name}
-                          </span>
-                          <button
-                            onClick={() => handleCategoryRemove(category.id)}
-                            className="text-red-600 hover:text-red-700 transition"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      )
-                    );
-                  })}
-                </div>
+          {selectedCategoryIds.length > 0 && categoriesList && (
+  <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900 rounded-lg">
+    <div className="flex flex-wrap gap-2 mt-2">
+      <div className="flex flex-wrap gap-2 mt-2">
+        {selectedCategoryIds.map((categoryId) => {
+          const category = categoriesList.find(
+            (cat) => cat.id === categoryId,
+          );
+          return (
+            category && (
+              <div
+                key={category.id}
+                className="flex items-center gap-2 bg-blue-100 dark:bg-blue-800 px-3 py-1 rounded-full"
+              >
+                <span className="text-gray-900 dark:text-white">
+                  {category.name}
+                </span>
+                <button
+                  onClick={() => handleCategoryRemove(category.id)}
+                  className="text-red-600 hover:text-red-700 transition"
+                >
+                  ✕
+                </button>
               </div>
-            </div>
-          )}
+            )
+          );
+        })}
+      </div>
+    </div>
+  </div>
+)}
 
           <div className="fixed w-full">
             <AnimatePresence>
@@ -450,7 +492,7 @@ export function CategoryDetails() {
                       <div className="text-center py-4">Загрузка...</div>
                     ) : error ? (
                       <div className="text-center py-4 text-red-600">
-                        Ошибка: {error.message}
+                        Ошибка: {error}
                       </div>
                     ) : filteredCategories.length === 0 ? (
                       <div className="text-center py-4 text-gray-500">
@@ -488,6 +530,23 @@ export function CategoryDetails() {
           </div>
           {/* Поля для названий */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="mb-4">
+              <label
+                htmlFor="name_uz"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+              >
+                {t("name_uz")}
+              </label>
+              <input
+                id="name_uz"
+                name="name_uz"
+                value={formData.names?.uz || ""}
+                onChange={handleChange}
+                required
+                placeholder="Введите название"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              />
+            </div>
             <div className="mb-4">
               <label
                 htmlFor="name_ru"
@@ -631,24 +690,32 @@ export function CategoryDetails() {
               className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600"
             />
 
-            {/* Превью изображений */}
             <div className="flex gap-2 mt-2">
-              {formData.images?.map((file, index) => (
-                <div key={index} className="relative">
-                  <img
-                    src={URL.createObjectURL(file)}
-                    alt="preview"
-                    className="w-20 h-20 object-cover rounded-md"
-                  />
-                  <button
-                    onClick={() => handleRemoveImage(index)}
-                    className="absolute top-0 right-0 bg-red-600 text-white text-xs p-1 rounded-full hover:bg-red-700 transition-colors"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
-            </div>
+  {formData.images?.map((file, index) => (
+    <div key={index} className="relative">
+      {file instanceof File ? ( 
+        <img
+          src={URL.createObjectURL(file)}
+          alt="preview"
+          className="w-20 h-20 object-cover rounded-md"
+        />
+      ) : (
+        <img
+          src={file} 
+          alt="preview"
+          className="w-20 h-20 object-cover rounded-md"
+        />
+      )}
+      <button
+        onClick={() => handleRemoveImage(index)}
+        className="absolute top-0 right-0 bg-red-600 text-white text-xs p-1 rounded-full hover:bg-red-700 transition-colors"
+      >
+        ✕
+      </button>
+    </div>
+  ))}
+</div>
+
           </div>
 
           {/* Поле для цены */}
@@ -689,6 +756,14 @@ export function CategoryDetails() {
           </div>
         </form>
       </Modal>
+      {showScrollButton && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-19 right-5 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition"
+        >
+          <ArrowUp className="w-6 h-6" />
+        </button>
+      )}
     </div>
   );
 }
