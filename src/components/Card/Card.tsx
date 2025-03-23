@@ -42,10 +42,10 @@ export function Card({
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-50 bg-white p-2 rounded-full shadow-md">
+            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-50 bg-white p-2 rounded-full shadow-md dark:bg-gray-700">
               {"<"}
             </CarouselPrevious>
-            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-50 bg-white p-2 rounded-full shadow-md">
+            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-50 bg-white p-2 rounded-full shadow-md dark:bg-gray-700">
               {">"}
             </CarouselNext>
           </Carousel>
@@ -60,7 +60,7 @@ export function Card({
         <CardDescription className="text-gray-400">
           {description}
         </CardDescription>
-        <p className="text-gray-400 dark:text-blue-400 font-bold">{price}</p>
+        <p className="text-yellow-500 font-bold">{price} sum</p>
       </CardContent>
     </ShadCard>
   );

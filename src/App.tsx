@@ -11,6 +11,7 @@ import { useState, useEffect } from "react";
 import { Sign } from "./components/Sign/Sign";
 import { CategoryDetails } from "./components/CategoryDetalis/CategoryDetalis";
 import { Admin } from "./components/Admin/Admin";
+import BottomNav from "./components/BottomNav/BottomNav";
 
 function App() {
   const [theme] = useState(localStorage.getItem("theme") || "light");
@@ -28,6 +29,7 @@ function App() {
           <Route path="/category/:id" element={<CategoryDetails />} />
           <Route path="/menu" element={<Resturant />} />
           <Route path="/sign" element={<Sign />} />
+                    <Route path="/navBottom" element={<BottomNav />} />
           <Route
             path="/admin"
             element={token ? <Admin /> : <Navigate to="/menu" />}

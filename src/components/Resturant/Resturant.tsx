@@ -68,11 +68,10 @@ export function Resturant() {
     i18n.changeLanguage(language);
   };
 
-  // Функция для загрузки данных категории
   const fetchCategoryItems = async (categoryId: number) => {
     try {
       const response = await fetch(
-        `http://16.171.7.103:8000/food?category_id=${categoryId}&lang_code=${lang}`,
+        `http://16.171.7.103:8000/food?categorie_id=${categoryId}&lang_code=${lang}`,
       );
       if (!response.ok) {
         throw new Error("Ошибка загрузки категории");
@@ -83,9 +82,11 @@ export function Resturant() {
 
       if (!data || !Array.isArray(data) || data.length === 0) {
         console.log("Пустой массив, показываем сообщение");
+        //@ts-ignore
         setSelectedCategory([]);
       } else {
         console.log("Категория содержит блюда:", data.length);
+        //@ts-ignore
         setSelectedCategory(data);
       }
     } catch (error) {
@@ -154,8 +155,8 @@ export function Resturant() {
                 onClick={() => fetchCategoryItems(category.id)}
                 className={`px-4 py-2 rounded-lg text-white font-semibold transition-all ${
                   selectedCategory?.id === category.id
-                    ? "bg-blue-700 dark:bg-blue-500"
-                    : "bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-400"
+                    ? "bg-yellow-700 dark:bg-yellow-500"
+                    : "bg-yellow-500 dark:bg-yellow-600 hover:bg-yellow-600 dark:hover:bg-yellow-400"
                 }`}
               >
                 {category.name}

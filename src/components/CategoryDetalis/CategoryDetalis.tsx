@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import DarkMode from "../DarkMode/DarkMode";
 import { useTranslation } from "react-i18next";
 import { Modal } from "../Modal/Modal";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Typography } from "@/components/ui/typography";
-import { ArrowLeft } from "lucide-react";
 import { MoreVertical } from "lucide-react";
 import { useFetch } from "../hooks/useFetch";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUp } from "lucide-react";
 import FoodImage from "../FoodImage/FoodImage";
+import { LoaderCircle } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -30,6 +30,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { usePostRequest } from "../hooks/usePostRequest";
+
+interface Food {
+  id: number | string;
+  images: string[];
+  name: string;
+  description: string;
+  price?: number;
+}
+
 interface Category {
   id: number;
   name_uz?: string;
@@ -38,35 +47,37 @@ interface Category {
   name_en?: string;
   created_at: string;
   updated_at: string;
+  name:string
+}
+
+interface FormData {
+  names: {
+    ru: string;
+    en: string;
+    uz: string;
+    kr: string;
+  };
+  descriptions: {
+    ru: string;
+    en: string;
+    uz: string;
+    kr: string;
+  };
+  images?: (string | File)[];
+  price?: number;
+  categories?: number[];
 }
 
 export function CategoryDetails() {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const { t, i18n } = useTranslation();
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [category, setCategory] = useState<Category | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [hiddenCategories, setHiddenCategories] = useState<number[]>([]);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
-  const [formData, setFormData] = useState<{
-    names?: {
-      ru: string;
-      en: string;
-      uz: string;
-      kr: string;
-    };
-    descriptions?: {
-      ru: string;
-      en: string;
-      uz: string;
-      kr: string;
-    };
-    images?: string[];
-    price?: number;
-    categories?: number[];
-  }>({
+  const [formData, setFormData] = useState<FormData>({
     names: { ru: "", en: "", uz: "", kr: "" },
     descriptions: { ru: "", en: "", uz: "", kr: "" },
     images: [],
@@ -77,10 +88,9 @@ export function CategoryDetails() {
   const lang = localStorage.getItem("i18nextLng") || "en";
 
   const {
-    data: categoriesList = [],
+    data: categoriesList = [], 
     loading,
     error,
-    refetch,
   } = useFetch<Category[]>("http://16.171.7.103:8000/categorie", {
     lang_code: lang,
   });
@@ -90,7 +100,7 @@ export function CategoryDetails() {
     loading: foodsLoading,
     error: foodsError,
     refetch: foodsRefetch,
-  } = useFetch("http://16.171.7.103:8000/food", {
+  } = useFetch<Food[]>("http://16.171.7.103:8000/food", {
     lang_code: lang,
   });
 
@@ -186,8 +196,9 @@ export function CategoryDetails() {
   const handleCategoryRemove = (categoryId: number) => {
     setSelectedCategoryIds((prev) => prev.filter((id) => id !== categoryId));
   };
-
-  const uploadImages = async () => {
+  const uploadImages = async (
+      //@ts-ignore
+    files: File[]) => {
     if (!formData?.images || formData.images.length === 0) {
       console.error("❌ Ошибка: Нет файлов для загрузки");
       return;
@@ -245,8 +256,8 @@ export function CategoryDetails() {
     }
 
     try {
-      const file = formData.images[0];
-      const imageUrl = await uploadImages(file);
+      const files = formData.images.filter((img): img is File => img instanceof File);
+      const imageUrl = await uploadImages(files);      
 
       if (!imageUrl) {
         console.error("Не удалось загрузить изображение.");
@@ -327,83 +338,78 @@ export function CategoryDetails() {
           </DropdownMenu>
         </div>
       </div>
-      {foods?.map((food) => (
-        <Card key={food.id} className="dark:bg-gray-800 mt-10 relative">
-          <CardHeader>
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
-                <div className="overflow-x-auto flex gap-2">
-                  {Array.isArray(food.images) && food.images.length > 0 ? (
-                    food.images.length === 1 ? (
-                      <FoodImage img={food.images[0]} token={token} />
-                    ) : (
-                      <Carousel className="w-full max-w-md">
-                        <CarouselContent>
-                          {food.images.map((img, index) => (
-                            <CarouselItem key={index} className="p-2">
-                              <FoodImage img={img} token={token} />
-                            </CarouselItem>
-                          ))}
-                        </CarouselContent>
+      {foodsLoading ? (
+  <div className="flex justify-center items-center h-40">
+    <LoaderCircle className="animate-spin text-gray-500" size={32} />
+  </div>
+) : foodsError ? (
+  <div className="text-center text-red-600">{foodsError}</div>
+) : (
+  foods?.map((food) => (
+    <Card key={food.id} className="dark:bg-gray-800 mt-10 relative">
+      <CardHeader>
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
+            <div className="overflow-x-auto flex gap-2">
+              {Array.isArray(food.images) && food.images.length > 0 ? (
+                food.images.length === 1 ? (
+                  <FoodImage img={food.images[0]} token={token} />
+                ) : (
+                  <Carousel className="w-full max-w-md">
+                    <CarouselContent>
+                      {food.images.map((img, index) => (
+                        <CarouselItem key={index} className="p-2 flex justify-center">
+                          <FoodImage img={img} token={token} />
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
 
-                        {/* Стрелки */}
-                        <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-1 bg-white p-2 rounded-full shadow-md">
-                          {"<"}
-                        </CarouselPrevious>
-                        <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-1 bg-white p-2 rounded-full shadow-md">
-                          {">"}
-                        </CarouselNext>
-                      </Carousel>
-                    )
-                  ) : (
-                    <p>Нет изображений</p>
-                  )}
-                </div>
-              </div>
+                    {/* Стрелки */}
+                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-1 bg-white p-2 rounded-full shadow-md">
+                      {"<"}
+                    </CarouselPrevious>
+                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-1 bg-white p-2 rounded-full shadow-md">
+                      {">"}
+                    </CarouselNext>
+                  </Carousel>
+                )
+              ) : (
+                <p>Нет изображений</p>
+              )}
             </div>
+          </div>
+        </div>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-0 right-0"
-                >
-                  <MoreVertical className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="dark:bg-gray-900" align="end">
-                <DropdownMenuItem onClick={() => setIsModalOpen(true)}>
-                  {t("edit_category")}
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600">
-                  {t("delete_category")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </CardHeader>
-          <CardContent>
-            <Typography
-              variant="h4"
-              className="border-t pt-2 dark:border-gray-700"
-            >
-              {food.name}
-            </Typography>
-            <Typography variant="p" className="text-gray-400">
-              {food.description}
-            </Typography>
-            <Typography variant="p" className="text-gray-400">
-              {food.price ? `${food.price} сум` : "Цена не указана"}
-            </Typography>
-          </CardContent>
-        </Card>
-      ))}
-      <button
-        onClick={() => navigate("/admin")}
-        className="mt-4 z-11 fixed left-[80%] bottom-[2%] bg-blue-600 text-white rounded-lg px-4 py-2 font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2"
-      >
-        <ArrowLeft className="w-5 h-5" />
-      </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="absolute top-0 right-0">
+              <MoreVertical className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="dark:bg-gray-900" align="end">
+            <DropdownMenuItem onClick={() => setIsModalOpen(true)}>
+              {t("edit_category")}
+            </DropdownMenuItem>
+            <DropdownMenuItem className="text-red-600">
+              {t("delete_category")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </CardHeader>
+      <CardContent>
+        <Typography variant="h4" className="border-t pt-2 dark:border-gray-700">
+          {food.name}
+        </Typography>
+        <Typography variant="p" className="text-gray-400">
+          {food.description}
+        </Typography>
+        <Typography variant="p" className="text-gray-400">
+          {food.price ? `${food.price} сум` : "Цена не указана"}
+        </Typography>
+      </CardContent>
+    </Card>
+  ))
+)}
 
       <Modal
         isOpen={isModalOpen}
@@ -414,7 +420,6 @@ export function CategoryDetails() {
           onSubmit={handleSubmit}
           className="h-90 overflow-y-scroll space-y-6 p-4"
         >
-          {/* Поле поиска */}
           <div className="mb-6">
             <label
               htmlFor="search"
@@ -438,37 +443,37 @@ export function CategoryDetails() {
           </div>
 
           {/* Блок выбранных категорий */}
-          {selectedCategoryIds.length > 0 && (
-            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900 rounded-lg">
-              <div className="flex flex-wrap gap-2 mt-2">
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {selectedCategoryIds.map((categoryId) => {
-                    const category = categoriesList.find(
-                      (cat) => cat.id === categoryId,
-                    );
-                    return (
-                      category && (
-                        <div
-                          key={category.id}
-                          className="flex items-center gap-2 bg-blue-100 dark:bg-blue-800 px-3 py-1 rounded-full"
-                        >
-                          <span className="text-gray-900 dark:text-white">
-                            {category.name}
-                          </span>
-                          <button
-                            onClick={() => handleCategoryRemove(category.id)}
-                            className="text-red-600 hover:text-red-700 transition"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      )
-                    );
-                  })}
-                </div>
+          {selectedCategoryIds.length > 0 && categoriesList && (
+  <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900 rounded-lg">
+    <div className="flex flex-wrap gap-2 mt-2">
+      <div className="flex flex-wrap gap-2 mt-2">
+        {selectedCategoryIds.map((categoryId) => {
+          const category = categoriesList.find(
+            (cat) => cat.id === categoryId,
+          );
+          return (
+            category && (
+              <div
+                key={category.id}
+                className="flex items-center gap-2 bg-blue-100 dark:bg-blue-800 px-3 py-1 rounded-full"
+              >
+                <span className="text-gray-900 dark:text-white">
+                  {category.name}
+                </span>
+                <button
+                  onClick={() => handleCategoryRemove(category.id)}
+                  className="text-red-600 hover:text-red-700 transition"
+                >
+                  ✕
+                </button>
               </div>
-            </div>
-          )}
+            )
+          );
+        })}
+      </div>
+    </div>
+  </div>
+)}
 
           <div className="fixed w-full">
             <AnimatePresence>
@@ -484,7 +489,7 @@ export function CategoryDetails() {
                       <div className="text-center py-4">Загрузка...</div>
                     ) : error ? (
                       <div className="text-center py-4 text-red-600">
-                        Ошибка: {error.message}
+                        Ошибка: {error}
                       </div>
                     ) : filteredCategories.length === 0 ? (
                       <div className="text-center py-4 text-gray-500">
@@ -665,24 +670,32 @@ export function CategoryDetails() {
               className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600"
             />
 
-            {/* Превью изображений */}
             <div className="flex gap-2 mt-2">
-              {formData.images?.map((file, index) => (
-                <div key={index} className="relative">
-                  <img
-                    src={URL.createObjectURL(file)}
-                    alt="preview"
-                    className="w-20 h-20 object-cover rounded-md"
-                  />
-                  <button
-                    onClick={() => handleRemoveImage(index)}
-                    className="absolute top-0 right-0 bg-red-600 text-white text-xs p-1 rounded-full hover:bg-red-700 transition-colors"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
-            </div>
+  {formData.images?.map((file, index) => (
+    <div key={index} className="relative">
+      {file instanceof File ? ( 
+        <img
+          src={URL.createObjectURL(file)}
+          alt="preview"
+          className="w-20 h-20 object-cover rounded-md"
+        />
+      ) : (
+        <img
+          src={file} 
+          alt="preview"
+          className="w-20 h-20 object-cover rounded-md"
+        />
+      )}
+      <button
+        onClick={() => handleRemoveImage(index)}
+        className="absolute top-0 right-0 bg-red-600 text-white text-xs p-1 rounded-full hover:bg-red-700 transition-colors"
+      >
+        ✕
+      </button>
+    </div>
+  ))}
+</div>
+
           </div>
 
           {/* Поле для цены */}
@@ -726,7 +739,7 @@ export function CategoryDetails() {
       {showScrollButton && (
         <button
           onClick={scrollToTop}
-          className="mt-4 fixed left-[80%] bottom-[10%] z-10 bg-blue-600 text-white rounded-lg px-4 py-2 font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2"
+          className="fixed bottom-19 right-5 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition"
         >
           <ArrowUp className="w-6 h-6" />
         </button>
