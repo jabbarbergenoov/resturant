@@ -19,38 +19,35 @@ import { Button } from "@/components/ui/button";
 import { useFetch } from "../hooks/useFetch";
 
 type Category = {
-  category: string;
+  id: number;
+  name: string;
   items: {
     name: string;
     description: string;
     price: string;
+    img?: string;
   }[];
 };
 
 export function Resturant() {
   const { t, i18n } = useTranslation();
   const lang = localStorage.getItem("i18nextLng") || "en";
-  const {
-    data: menu,
-    loading,
-    error,
-  } = useFetch<
-    { id: number; name: string; created_at: string; updated_at: string }[]
-  >("http://16.171.7.103:8000/categorie", {
-    lang_code: lang,
-  });
 
-  console.log(menu);
+  const { data: menu } = useFetch<Category[]>(
+    "http://16.171.7.103:8000/categorie",
+    {
+      lang_code: lang,
+    },
+  );
 
   const [theme, setTheme] = useState(
     typeof window !== "undefined"
       ? localStorage.getItem("theme") || "light"
       : "light",
   );
-  const [selectedCategory, setSelectedCategory] = useState<{
-    id: number;
-    name: string;
-  } | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null,
+  );
   const [visibleCategories, setVisibleCategories] = useState<number>(3);
   const [_, setIsThemeSelectionOpen] = useState(false);
   const visibleMenu = menu ? menu.slice(0, visibleCategories) : [];
@@ -69,6 +66,31 @@ export function Resturant() {
 
   const changeLanguage = (language: string) => {
     i18n.changeLanguage(language);
+  };
+
+  // Функция для загрузки данных категории
+  const fetchCategoryItems = async (categoryId: number) => {
+    try {
+      const response = await fetch(
+        `http://16.171.7.103:8000/food?category_id=${categoryId}&lang_code=${lang}`,
+      );
+      if (!response.ok) {
+        throw new Error("Ошибка загрузки категории");
+      }
+      const data = await response.json();
+
+      console.log("Данные категории:", data); // Логируем ответ
+
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        console.log("Пустой массив, показываем сообщение");
+        setSelectedCategory([]);
+      } else {
+        console.log("Категория содержит блюда:", data.length);
+        setSelectedCategory(data);
+      }
+    } catch (error) {
+      console.error("Ошибка загрузки:", error);
+    }
   };
 
   return (
@@ -104,7 +126,6 @@ export function Resturant() {
                 </DropdownMenuSub>
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
-                    {" "}
                     {t("select_language")}
                   </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent className="bg-gray-900">
@@ -125,13 +146,14 @@ export function Resturant() {
               </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
+
           {visibleMenu?.length > 0 ? (
             visibleMenu.map((category, index) => (
               <button
                 key={index}
-                onClick={() => setSelectedCategory(category)}
+                onClick={() => fetchCategoryItems(category.id)}
                 className={`px-4 py-2 rounded-lg text-white font-semibold transition-all ${
-                  selectedCategory?.name === category.name
+                  selectedCategory?.id === category.id
                     ? "bg-blue-700 dark:bg-blue-500"
                     : "bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-400"
                 }`}
@@ -167,12 +189,16 @@ export function Resturant() {
           )}
         </div>
 
-        {selectedCategory && selectedCategory.items && (
+        {Array.isArray(selectedCategory) && selectedCategory.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2">
-            {selectedCategory.items.map((item, idx) => (
+            {selectedCategory.map((item, idx) => (
               <Card key={idx} {...item} />
             ))}
           </div>
+        ) : (
+          <p className="text-gray-500 dark:text-gray-400">
+            В этой категории пока нет блюд
+          </p>
         )}
       </div>
     </div>

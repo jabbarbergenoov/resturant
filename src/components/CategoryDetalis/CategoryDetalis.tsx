@@ -6,10 +6,18 @@ import { Modal } from "../Modal/Modal";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Typography } from "@/components/ui/typography";
 import { ArrowLeft } from "lucide-react";
-import pizzaImg from "../../assets/images (1).jfif";
 import { MoreVertical } from "lucide-react";
 import { useFetch } from "../hooks/useFetch";
 import { motion, AnimatePresence } from "framer-motion";
+import { ArrowUp } from "lucide-react";
+import FoodImage from "../FoodImage/FoodImage";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +41,7 @@ interface Category {
 }
 
 export function CategoryDetails() {
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const { t, i18n } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -71,17 +80,36 @@ export function CategoryDetails() {
     data: categoriesList = [],
     loading,
     error,
+    refetch,
   } = useFetch<Category[]>("http://16.171.7.103:8000/categorie", {
     lang_code: lang,
   });
 
   const {
-    data:foods,
+    data: foods,
     loading: foodsLoading,
-    error: foodsError
-  } = useFetch('http://16.171.7.103:8000/food' , {
+    error: foodsError,
+    refetch: foodsRefetch,
+  } = useFetch("http://16.171.7.103:8000/food", {
     lang_code: lang,
-  })
+  });
+
+  const checkScrollTop = () => {
+    if (!showScrollButton && window.pageYOffset > 200) {
+      setShowScrollButton(true);
+    } else if (showScrollButton && window.pageYOffset <= 200) {
+      setShowScrollButton(false);
+    }
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", checkScrollTop);
+    return () => window.removeEventListener("scroll", checkScrollTop);
+  }, [showScrollButton]);
 
   const filteredCategories = categoriesList
     ? categoriesList.filter((cat) =>
@@ -168,7 +196,7 @@ export function CategoryDetails() {
     const formDataToSend = new FormData();
 
     formData.images.forEach((file) => {
-      formDataToSend.append("files", file); 
+      formDataToSend.append("files", file);
     });
 
     try {
@@ -209,14 +237,16 @@ export function CategoryDetails() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    console.log("Form Data:", formData); // Log form data
+
     if (!formData.images?.length) {
       console.error("Ошибка: выберите изображение.");
       return;
     }
 
     try {
-      const file = formData.images[0]; 
-      const imageUrl = await uploadImages(file); 
+      const file = formData.images[0];
+      const imageUrl = await uploadImages(file);
 
       if (!imageUrl) {
         console.error("Не удалось загрузить изображение.");
@@ -226,10 +256,12 @@ export function CategoryDetails() {
       const requestData = {
         names: formData.names,
         descriptions: formData.descriptions,
-        images: imageUrl, 
+        images: imageUrl,
         price: formData.price || 0,
-        categories: selectedCategoryIds, 
+        categories: selectedCategoryIds,
       };
+
+      console.log("Request Data:", requestData); // Log request data
 
       await postRequest(requestData);
 
@@ -241,7 +273,8 @@ export function CategoryDetails() {
         price: 0,
         categories: [],
       });
-      setSelectedCategoryIds([]); 
+      foodsRefetch();
+      setSelectedCategoryIds([]);
     } catch (error) {
       console.error("Ошибка при отправке запроса:", error);
     }
@@ -295,78 +328,79 @@ export function CategoryDetails() {
         </div>
       </div>
       {foods?.map((food) => (
-  <Card key={food.id} className="dark:bg-gray-800 mt-10 relative">
-    <CardHeader>
-    <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-    <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
-    <div className="overflow-x-auto flex gap-2 p-2">
-      
-    {Array.isArray(food.images) &&
-  food.images.map((img, index) => {
-    console.log("Рендер изображения:", img);
-    return (
-      <img
-      key={index} // Теперь ключ уникален
-      src={`http://16.171.7.103:8000/food/image/${img}`}
-        alt={food.name || "Изображение"}
-        className="rounded-xl w-32 h-32 object-cover flex-shrink-0"
-        onError={(e) => {
-          console.error("Ошибка загрузки изображения:", img);
-          e.currentTarget.style.display = "none";
-        }}
-      />
-    );
-  })}
+        <Card key={food.id} className="dark:bg-gray-800 mt-10 relative">
+          <CardHeader>
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
+                <div className="overflow-x-auto flex gap-2">
+                  {Array.isArray(food.images) && food.images.length > 0 ? (
+                    food.images.length === 1 ? (
+                      <FoodImage img={food.images[0]} token={token} />
+                    ) : (
+                      <Carousel className="w-full max-w-md">
+                        <CarouselContent>
+                          {food.images.map((img, index) => (
+                            <CarouselItem key={index} className="p-2">
+                              <FoodImage img={img} token={token} />
+                            </CarouselItem>
+                          ))}
+                        </CarouselContent>
 
+                        {/* Стрелки */}
+                        <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-1 bg-white p-2 rounded-full shadow-md">
+                          {"<"}
+                        </CarouselPrevious>
+                        <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-1 bg-white p-2 rounded-full shadow-md">
+                          {">"}
+                        </CarouselNext>
+                      </Carousel>
+                    )
+                  ) : (
+                    <p>Нет изображений</p>
+                  )}
+                </div>
+              </div>
+            </div>
 
-</div>
-
-
-</div>
-
-</div>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-0 right-0"
-          >
-            <MoreVertical className="h-5 w-5" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="dark:bg-gray-900" align="end">
-          <DropdownMenuItem onClick={() => setIsModalOpen(true)}>
-            {t("edit_category")}
-          </DropdownMenuItem>
-          <DropdownMenuItem className="text-red-600">
-            {t("delete_category")}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </CardHeader>
-    <CardContent>
-      <Typography
-        variant="h4"
-        className="border-t pt-5 dark:border-gray-700"
-      >
-        {food.name}
-      </Typography>
-      <Typography variant="p" className="text-gray-400">
-        {food.description}
-      </Typography>
-      <Typography variant="p" className="text-gray-400">
-        {food.price ? `${food.price} сум` : "Цена не указана"}
-      </Typography>
-    </CardContent>
-  </Card>
-))}
-
-
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-0 right-0"
+                >
+                  <MoreVertical className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="dark:bg-gray-900" align="end">
+                <DropdownMenuItem onClick={() => setIsModalOpen(true)}>
+                  {t("edit_category")}
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-red-600">
+                  {t("delete_category")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </CardHeader>
+          <CardContent>
+            <Typography
+              variant="h4"
+              className="border-t pt-2 dark:border-gray-700"
+            >
+              {food.name}
+            </Typography>
+            <Typography variant="p" className="text-gray-400">
+              {food.description}
+            </Typography>
+            <Typography variant="p" className="text-gray-400">
+              {food.price ? `${food.price} сум` : "Цена не указана"}
+            </Typography>
+          </CardContent>
+        </Card>
+      ))}
       <button
         onClick={() => navigate("/admin")}
-        className="mt-4 fixed left-[80%] bottom-[2%] bg-blue-600 text-white rounded-lg px-4 py-2 font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2"
+        className="mt-4 z-11 fixed left-[80%] bottom-[2%] bg-blue-600 text-white rounded-lg px-4 py-2 font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2"
       >
         <ArrowLeft className="w-5 h-5" />
       </button>
@@ -689,6 +723,14 @@ export function CategoryDetails() {
           </div>
         </form>
       </Modal>
+      {showScrollButton && (
+        <button
+          onClick={scrollToTop}
+          className="mt-4 fixed left-[80%] bottom-[10%] z-10 bg-blue-600 text-white rounded-lg px-4 py-2 font-semibold hover:bg-blue-700 transition flex items-center justify-center gap-2"
+        >
+          <ArrowUp className="w-6 h-6" />
+        </button>
+      )}
     </div>
   );
 }

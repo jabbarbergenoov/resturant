@@ -5,24 +5,54 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel";
+
+import FoodImage from "../FoodImage/FoodImage";
 
 type CardProps = {
   name: string;
   description: string;
   price: string;
-  img?: string;
+  images?: string[];
+  token: string;
 };
 
-export function Card({ name, description, price, img }: CardProps) {
+export function Card({
+  name,
+  description,
+  price,
+  images = [],
+  token,
+}: CardProps) {
   return (
     <ShadCard className="overflow-hidden shadow-md dark:bg-gray-800">
-      <CardHeader>
-        {img && (
-          <img
-            src={img}
-            alt={name}
-            className="w-full object-cover rounded-xl"
-          />
+      <CardHeader className="relative">
+        {images.length > 1 ? (
+          <Carousel className="w-full max-w-md overflow-visible">
+            <CarouselContent>
+              {images.map((img, index) => (
+                <CarouselItem key={index} className="p-2">
+                  <FoodImage img={img} token={token} />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-50 bg-white p-2 rounded-full shadow-md">
+              {"<"}
+            </CarouselPrevious>
+            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-50 bg-white p-2 rounded-full shadow-md">
+              {">"}
+            </CarouselNext>
+          </Carousel>
+        ) : images.length === 1 ? (
+          <FoodImage img={images[0]} token={token} />
+        ) : (
+          <p className="text-gray-400">Нет изображений</p>
         )}
       </CardHeader>
       <CardContent>
