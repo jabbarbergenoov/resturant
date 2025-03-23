@@ -42,10 +42,10 @@ export function Card({
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-50 bg-white p-2 rounded-full shadow-md dark:bg-gray-700">
+            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-50 p-2 border-0 text-white rounded-full shadow-md bg-yellow-500 dark:bg-yellow-500">
               {"<"}
             </CarouselPrevious>
-            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-50 bg-white p-2 rounded-full shadow-md dark:bg-gray-700">
+            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-50 text-white p-2 border-0 rounded-full shadow-md bg-yellow-500 dark:bg-yellow-500">
               {">"}
             </CarouselNext>
           </Carousel>

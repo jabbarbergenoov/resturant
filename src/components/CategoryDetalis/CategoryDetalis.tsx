@@ -353,18 +353,21 @@ export function CategoryDetails() {
             <div className="overflow-x-auto flex gap-2">
               {Array.isArray(food.images) && food.images.length > 0 ? (
                 food.images.length === 1 ? (
-                  <FoodImage img={food.images[0]} token={token} />
+                  <FoodImage img={food.images[0]} 
+                  //@ts-ignore
+                  token={token} />
                 ) : (
                   <Carousel className="w-full max-w-md">
                     <CarouselContent>
                       {food.images.map((img, index) => (
                         <CarouselItem key={index} className="p-2 flex justify-center">
-                          <FoodImage img={img} token={token} />
+                          <FoodImage img={img} 
+                          //@ts-ignore
+                          token={token} />
                         </CarouselItem>
                       ))}
                     </CarouselContent>
 
-                    {/* Стрелки */}
                     <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-1 bg-white p-2 rounded-full shadow-md">
                       {"<"}
                     </CarouselPrevious>
@@ -527,6 +530,23 @@ export function CategoryDetails() {
           </div>
           {/* Поля для названий */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="mb-4">
+              <label
+                htmlFor="name_uz"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+              >
+                {t("name_uz")}
+              </label>
+              <input
+                id="name_uz"
+                name="name_uz"
+                value={formData.names?.uz || ""}
+                onChange={handleChange}
+                required
+                placeholder="Введите название"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              />
+            </div>
             <div className="mb-4">
               <label
                 htmlFor="name_ru"

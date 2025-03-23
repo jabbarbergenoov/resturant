@@ -22,7 +22,6 @@ import {
   CardHeader,
   CardFooter,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
@@ -153,12 +152,12 @@ export function Admin() {
 
   const handleUpdate = async (id: number, e: React.FormEvent) => {
     e.preventDefault();
-
+  
     if (!id) {
       console.error("Ошибка: ID не указан");
       return;
     }
-
+  
     try {
       const requestData = {
         id: formData.id,
@@ -169,17 +168,19 @@ export function Admin() {
           kr: formData.name_kr.trim(),
         },
       };
-
+  
       console.log("Отправляемые данные:", JSON.stringify(requestData, null, 2));
-
+  
       await patchRequest(requestData);
+  
       setIsEdit(false);
-      refetch();
+  
+      // 🔥 Добавляем обновление данных после запроса
     } catch (error) {
       console.error("Ошибка обновления:", error);
     }
   };
-
+  
   const checkScrollTop = () => {
     if (!showScrollButton && window.pageYOffset > 200) {
       setShowScrollButton(true);
@@ -270,21 +271,18 @@ export function Admin() {
                     <CardTitle className="text-lg font-semibold">
                       {e.name}
                     </CardTitle>
-                    <CardDescription className="text-gray-500 text-sm">
-                      ID: {e.id}
-                    </CardDescription>
                   </div>
                 </CardHeader>
 
                 <CardContent className="mt-3 flex flex-col space-y-2">
-                  <div className="flex justify-between text-sm text-gray-500">
+                  <div className="flex sm:flex-row flex-col justify-between text-sm text-gray-500">
                     <span className="font-medium">{t("created_at")}</span>
                     <span>{new Date(e.created_at).toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-sm text-gray-500">
-                    <span className="font-medium">{t("updated_at")}</span>
-                    <span>{new Date(e.updated_at).toLocaleString()}</span>
-                  </div>
+                  <div className="flex sm:flex-row flex-col justify-between text-sm text-gray-500">
+  <span className="font-medium">{t("updated_at")}</span>
+  <span>{new Date(e.updated_at).toLocaleString()}</span>
+</div>
                 </CardContent>
 
                 <CardFooter className="mt-4 flex justify-end gap-5">

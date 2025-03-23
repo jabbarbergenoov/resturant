@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "../Card/Card";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Menu } from "lucide-react";
+import { Menu ,Loader} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,19 +21,21 @@ import { useFetch } from "../hooks/useFetch";
 type Category = {
   id: number;
   name: string;
-  items: {
-    name: string;
-    description: string;
-    price: string;
-    img?: string;
-  }[];
+};
+
+type Food = {
+  id: number;
+  name: string;
+  description: string;
+  price: string;
+  img?: string;
 };
 
 export function Resturant() {
   const { t, i18n } = useTranslation();
   const lang = localStorage.getItem("i18nextLng") || "en";
 
-  const { data: menu } = useFetch<Category[]>(
+  const { data: menu, loading: menuLoading, error: menuError } = useFetch<Category[]>(
     "http://16.171.7.103:8000/categorie",
     {
       lang_code: lang,
@@ -45,11 +47,11 @@ export function Resturant() {
       ? localStorage.getItem("theme") || "light"
       : "light",
   );
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null,
-  );
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Food[]>([]);
   const [visibleCategories, setVisibleCategories] = useState<number>(3);
   const [_, setIsThemeSelectionOpen] = useState(false);
+
   const visibleMenu = menu ? menu.slice(0, visibleCategories) : [];
 
   useEffect(() => {
@@ -68,31 +70,31 @@ export function Resturant() {
     i18n.changeLanguage(language);
   };
 
-  const fetchCategoryItems = async (categoryId: number) => {
-    try {
-      const response = await fetch(
-        `http://16.171.7.103:8000/food?categorie_id=${categoryId}&lang_code=${lang}`,
-      );
-      if (!response.ok) {
-        throw new Error("Ошибка загрузки категории");
-      }
-      const data = await response.json();
+  const {
+    data: categoryItems,
+    loading: categoryLoading,
+    error: categoryError,
+  } = useFetch<Food[]>(
+    //@ts-ignore
+    
+    selectedCategoryId
+      ? `http://16.171.7.103:8000/food?categorie_id=${selectedCategoryId}&lang_code=${lang}`
+      : null
+  );
 
-      console.log("Данные категории:", data); // Логируем ответ
-
-      if (!data || !Array.isArray(data) || data.length === 0) {
-        console.log("Пустой массив, показываем сообщение");
-        //@ts-ignore
-        setSelectedCategory([]);
-      } else {
-        console.log("Категория содержит блюда:", data.length);
-        //@ts-ignore
-        setSelectedCategory(data);
-      }
-    } catch (error) {
-      console.error("Ошибка загрузки:", error);
+  useEffect(() => {
+    if (categoryItems) {
+      setSelectedCategory(categoryItems);
     }
-  };
+  }, [categoryItems]);
+
+  if (menuLoading) {
+    return           <Loader className="animate-spin w-10 h-10 text-gray-500" />
+  }
+
+  if (menuError) {
+    return <div>Ошибка: {menuError}</div>;
+  }
 
   return (
     <div className="min-h-[0vh] bg-gray-100 dark:bg-gray-900">
@@ -129,7 +131,7 @@ export function Resturant() {
                   <DropdownMenuSubTrigger>
                     {t("select_language")}
                   </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="bg-gray-900">
+                  <DropdownMenuSubContent className="dark:bg-gray-900">
                     <DropdownMenuItem onClick={() => changeLanguage("en")}>
                       English
                     </DropdownMenuItem>
@@ -149,12 +151,12 @@ export function Resturant() {
           </DropdownMenu>
 
           {visibleMenu?.length > 0 ? (
-            visibleMenu.map((category, index) => (
+            visibleMenu.map((category) => (
               <button
-                key={index}
-                onClick={() => fetchCategoryItems(category.id)}
+                key={category.id}
+                onClick={() => setSelectedCategoryId(category.id)}
                 className={`px-4 py-2 rounded-lg text-white font-semibold transition-all ${
-                  selectedCategory?.id === category.id
+                  selectedCategoryId === category.id
                     ? "bg-yellow-700 dark:bg-yellow-500"
                     : "bg-yellow-500 dark:bg-yellow-600 hover:bg-yellow-600 dark:hover:bg-yellow-400"
                 }`}
@@ -190,10 +192,15 @@ export function Resturant() {
           )}
         </div>
 
-        {Array.isArray(selectedCategory) && selectedCategory.length > 0 ? (
+        {categoryLoading ? (
+                    <Loader className="animate-spin w-10 h-10 text-gray-500" />
+        ) : categoryError ? (
+          <div>Ошибка: {categoryError}</div>
+        ) : selectedCategory.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2">
-            {selectedCategory.map((item, idx) => (
-              <Card key={idx} {...item} />
+            {selectedCategory.map((item) => (
+              //@ts-ignore
+              <Card key={item.id} {...item} />
             ))}
           </div>
         ) : (

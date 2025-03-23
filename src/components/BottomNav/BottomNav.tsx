@@ -19,7 +19,7 @@ const BottomNav = () => {
         {active === "foods" && < CategoryDetails />}
       </div>
 
-      <nav className="fixed bottom-0 left-0 w-full bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 p-2">
+      <nav className="fixed bottom-0 left-0 w-full z-100 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 p-2">
         <div className="flex justify-around">
           {navItems.map(({ id, label, icon: Icon }) => (
             <button
