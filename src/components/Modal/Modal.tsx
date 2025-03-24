@@ -20,11 +20,11 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/5 flex items-center justify-center z-999"
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-[90%] max-w-md p-6 relative animate-fadeIn"
+        className="bg-white dark:bg-gray-800 z-999 rounded-lg shadow-lg w-[90%] max-w-md p-6 relative animate-fadeIn"
         onClick={(e) => e.stopPropagation()}
       >
         {title && (

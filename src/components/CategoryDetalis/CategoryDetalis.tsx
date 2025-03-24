@@ -7,10 +7,10 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Typography } from "@/components/ui/typography";
 import { MoreVertical } from "lucide-react";
 import { useFetch } from "../hooks/useFetch";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp ,ChevronLeft} from "lucide-react";
 import FoodImage from "../FoodImage/FoodImage";
 import { LoaderCircle } from "lucide-react";
+import { Input } from "../ui/input";
 import {
   Carousel,
   CarouselContent,
@@ -30,6 +30,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { usePostRequest } from "../hooks/usePostRequest";
+import SearchCategories from "../SearchCategories/SearchCategories";
 
 interface Food {
   id: number | string;
@@ -47,7 +48,7 @@ interface Category {
   name_en?: string;
   created_at: string;
   updated_at: string;
-  name:string
+  name: string;
 }
 
 interface FormData {
@@ -71,12 +72,22 @@ interface FormData {
 export function CategoryDetails() {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const { t, i18n } = useTranslation();
+  const [search, setSearch] = useState("");
   const { id } = useParams<{ id: string }>();
   const [category, setCategory] = useState<Category | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [hiddenCategories, setHiddenCategories] = useState<number[]>([]);
+  const [searchTerm, _] = useState("");
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
+  const [fileNames, setFileNames] = useState(t('noSelect'));
+
+  const handleFileSelect = (event:any) => {
+    if (event.target.files.length > 0) {
+      setFileNames([...event.target.files].map((file) => file.name).join(", "));
+    } else {
+      setFileNames(t('noSelect'));
+    }
+    handleImageChange(event); 
+  };
   const [formData, setFormData] = useState<FormData>({
     names: { ru: "", en: "", uz: "", kr: "" },
     descriptions: { ru: "", en: "", uz: "", kr: "" },
@@ -88,9 +99,7 @@ export function CategoryDetails() {
   const lang = localStorage.getItem("i18nextLng") || "en";
 
   const {
-    data: categoriesList = [], 
-    loading,
-    error,
+    data: categoriesList = [],
   } = useFetch<Category[]>("http://16.171.7.103:8000/categorie", {
     lang_code: lang,
   });
@@ -102,6 +111,7 @@ export function CategoryDetails() {
     refetch: foodsRefetch,
   } = useFetch<Food[]>("http://16.171.7.103:8000/food", {
     lang_code: lang,
+    name: search
   });
 
   const checkScrollTop = () => {
@@ -185,20 +195,24 @@ export function CategoryDetails() {
     });
   };
 
-  const handleCategorySelect = (categoryId: number) => {
-    if (!selectedCategoryIds.includes(categoryId)) {
-      setSelectedCategoryIds((prev) => [...prev, categoryId]);
-    }
+  // const handleCategorySelect = (categoryId: number) => {
+    
+  //   if (!selectedCategoryIds.includes(categoryId)) {
+  //     setSelectedCategoryIds((prev) => [...prev, categoryId]);
+  //   }
 
-    setHiddenCategories((prev) => [...prev, categoryId]);
-  };
+  //   setHiddenCategories((prev) => [...prev, categoryId]);
+  // };
 
-  const handleCategoryRemove = (categoryId: number) => {
-    setSelectedCategoryIds((prev) => prev.filter((id) => id !== categoryId));
-  };
+  // const handleCategoryRemove = (categoryId: number) => {
+  //   setSelectedCategoryIds((prev) => prev.filter((id) => id !== categoryId));
+  // };
+
+
   const uploadImages = async (
-      //@ts-ignore
-    files: File[]) => {
+    //@ts-ignore
+    files: File[],
+  ) => {
     if (!formData?.images || formData.images.length === 0) {
       console.error("❌ Ошибка: Нет файлов для загрузки");
       return;
@@ -256,8 +270,10 @@ export function CategoryDetails() {
     }
 
     try {
-      const files = formData.images.filter((img): img is File => img instanceof File);
-      const imageUrl = await uploadImages(files);      
+      const files = formData.images.filter(
+        (img): img is File => img instanceof File,
+      );
+      const imageUrl = await uploadImages(files);
 
       if (!imageUrl) {
         console.error("Не удалось загрузить изображение.");
@@ -312,14 +328,14 @@ export function CategoryDetails() {
             </DropdownMenuTrigger>
             <DropdownMenuContent className="dark:bg-gray-900" align="end">
               <DropdownMenuItem onClick={() => setIsModalOpen(true)}>
-                {t("add_category")}
+                {t("add_food")}
               </DropdownMenuItem>
               <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  {" "}
+              <DropdownMenuSubTrigger className="flex  items-center w-full [&>*:last-child]:hidden">
+                  <ChevronLeft className="h-4 w-4 transition-transform data-[state=open]:rotate-90" />
                   {t("select_language")}
                 </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
+                <DropdownMenuSubContent className="bg-gray-900">
                   <DropdownMenuItem onClick={() => changeLanguage("en")}>
                     English
                   </DropdownMenuItem>
@@ -338,81 +354,105 @@ export function CategoryDetails() {
           </DropdownMenu>
         </div>
       </div>
-      {foodsLoading ? (
-  <div className="flex justify-center items-center h-40">
-    <LoaderCircle className="animate-spin text-gray-500" size={32} />
-  </div>
-) : foodsError ? (
-  <div className="text-center text-red-600">{foodsError}</div>
-) : (
-  foods?.map((food) => (
-    <Card key={food.id} className="dark:bg-gray-800 mt-10 relative">
-      <CardHeader>
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
-            <div className="overflow-x-auto flex gap-2">
-              {Array.isArray(food.images) && food.images.length > 0 ? (
-                food.images.length === 1 ? (
-                  <FoodImage img={food.images[0]} 
-                  //@ts-ignore
-                  token={token} />
-                ) : (
-                  <Carousel className="w-full max-w-md">
-                    <CarouselContent>
-                      {food.images.map((img, index) => (
-                        <CarouselItem key={index} className="p-2 flex justify-center">
-                          <FoodImage img={img} 
-                          //@ts-ignore
-                          token={token} />
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-
-                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-1 bg-white p-2 rounded-full shadow-md">
-                      {"<"}
-                    </CarouselPrevious>
-                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-1 bg-white p-2 rounded-full shadow-md">
-                      {">"}
-                    </CarouselNext>
-                  </Carousel>
-                )
-              ) : (
-                <p>Нет изображений</p>
-              )}
-            </div>
-          </div>
+      <div className="flex-grow">
+        <div className="flex justify-end gap-5 mt-5 mb-5">
+          <Input
+            placeholder={t("search_placeholder")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full dark:bg-gray-800"
+          />
         </div>
+      </div>
+      {foodsLoading ? (
+        <div className="flex justify-center items-center h-40">
+          <LoaderCircle className="animate-spin text-gray-500" size={32} />
+        </div>
+      ) : foodsError ? (
+        <div className="text-center text-red-600">{foodsError}</div>
+      ) : (
+        foods?.map((food) => (
+          <Card key={food.id} className="dark:bg-gray-800 mt-10 relative">
+            <CardHeader>
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
+                  <div className="overflow-x-auto flex gap-2">
+                    {Array.isArray(food.images) && food.images.length > 0 ? (
+                      food.images.length === 1 ? (
+                        <FoodImage
+                          img={food.images[0]}
+                          //@ts-ignore
+                          token={token}
+                        />
+                      ) : (
+                        <Carousel className="w-full max-w-md">
+                          <CarouselContent>
+                            {food.images.map((img, index) => (
+                              <CarouselItem
+                                key={index}
+                                className="p-2 flex justify-center"
+                              >
+                                <FoodImage
+                                  img={img}
+                                  //@ts-ignore
+                                  token={token}
+                                />
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="absolute top-0 right-0">
-              <MoreVertical className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="dark:bg-gray-900" align="end">
-            <DropdownMenuItem onClick={() => setIsModalOpen(true)}>
-              {t("edit_category")}
-            </DropdownMenuItem>
-            <DropdownMenuItem className="text-red-600">
-              {t("delete_category")}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </CardHeader>
-      <CardContent>
-        <Typography variant="h4" className="border-t pt-2 dark:border-gray-700">
-          {food.name}
-        </Typography>
-        <Typography variant="p" className="text-gray-400">
-          {food.description}
-        </Typography>
-        <Typography variant="p" className="text-gray-400">
-          {food.price ? `${food.price} сум` : "Цена не указана"}
-        </Typography>
-      </CardContent>
-    </Card>
-  ))
-)}
+                          <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-1 text-white bg-yellow-500 p-2 dark:text-white dark:bg-yellow-500 rounded-full shadow-md">
+                            {"<"}
+                          </CarouselPrevious>
+                          <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-1 text-white bg-yellow-500 dark:text-white dark:bg-yellow-500 p-2 rounded-full shadow-md">
+                            {">"}
+                          </CarouselNext>
+                        </Carousel>
+                      )
+                    ) : (
+                      <p>{t('notImage')}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-0 right-0"
+                  >
+                    <MoreVertical className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="dark:bg-gray-900" align="end">
+                  <DropdownMenuItem onClick={() => setIsModalOpen(true)}>
+                    {t("edit_foods")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-red-600">
+                    {t("delete_food")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </CardHeader>
+            <CardContent>
+              <Typography
+                variant="h4"
+                className="border-t pt-2 dark:border-gray-700"
+              >
+                {food.name}
+              </Typography>
+              <Typography variant="p" className="text-gray-400">
+                {food.description}
+              </Typography>
+              <Typography variant="p" className="text-gray-400">
+                {food.price ? `${food.price} ${t('sum')}` : t("Price")}
+              </Typography>
+            </CardContent>
+          </Card>
+        ))
+      )}
 
       <Modal
         isOpen={isModalOpen}
@@ -421,116 +461,19 @@ export function CategoryDetails() {
       >
         <form
           onSubmit={handleSubmit}
-          className="h-90 overflow-y-scroll space-y-6 p-4"
+          className="h-120 overflow-y-scroll space-y-6 p-4"
         >
-          <div className="mb-6">
-            <label
-              htmlFor="search"
-              className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-            >
-              {t("search_category")}
-            </label>
-            <div className="relative">
-              <input
-                id="search"
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Поиск категории"
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pl-10 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              />
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                🔍
-              </span>
-            </div>
-          </div>
 
-          {/* Блок выбранных категорий */}
-          {selectedCategoryIds.length > 0 && categoriesList && (
-  <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900 rounded-lg">
-    <div className="flex flex-wrap gap-2 mt-2">
-      <div className="flex flex-wrap gap-2 mt-2">
-        {selectedCategoryIds.map((categoryId) => {
-          const category = categoriesList.find(
-            (cat) => cat.id === categoryId,
-          );
-          return (
-            category && (
-              <div
-                key={category.id}
-                className="flex items-center gap-2 bg-blue-100 dark:bg-blue-800 px-3 py-1 rounded-full"
-              >
-                <span className="text-gray-900 dark:text-white">
-                  {category.name}
-                </span>
-                <button
-                  onClick={() => handleCategoryRemove(category.id)}
-                  className="text-red-600 hover:text-red-700 transition"
-                >
-                  ✕
-                </button>
-              </div>
-            )
-          );
-        })}
-      </div>
-    </div>
-  </div>
-)}
-
-          <div className="fixed w-full">
-            <AnimatePresence>
-              {searchTerm && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="fixed z-10 w-[60%] top-53 mt-2 bg-white rounded-lg shadow-lg"
-                >
-                  <div className="max-h-40 overflow-y-auto p-0">
-                    {loading ? (
-                      <div className="text-center py-4">Загрузка...</div>
-                    ) : error ? (
-                      <div className="text-center py-4 text-red-600">
-                        Ошибка: {error}
-                      </div>
-                    ) : filteredCategories.length === 0 ? (
-                      <div className="text-center py-4 text-gray-500">
-                        Категории не найдены
-                      </div>
-                    ) : (
-                      filteredCategories.map((cat) =>
-                        !hiddenCategories.includes(cat.id) ? (
-                          <motion.div
-                            key={cat.id}
-                            initial={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            <div
-                              onClick={() => handleCategorySelect(cat.id)}
-                              className={`p-3 cursor-pointer rounded-lg transition-colors ${
-                                selectedCategoryIds.includes(cat.id)
-                                  ? "bg-blue-100 dark:bg-blue-800"
-                                  : "hover:bg-gray-100 dark:hover:bg-gray-600"
-                              }`}
-                            >
-                              <span className="text-gray-900 dark:text-white">
-                                {cat.name}
-                              </span>
-                            </div>
-                          </motion.div>
-                        ) : null,
-                      )
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-          {/* Поля для названий */}
+          <label className="mb-10">
+            {t('addCategory')}
+          </label>
+          <SearchCategories
+          //@ts-ignore
+          categories={categoriesList} 
+          //@ts-ignore
+          onSelect={selectedCategoryIds} />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="mb-4">
+            <div className="mb-4">
               <label
                 htmlFor="name_uz"
                 className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -543,7 +486,7 @@ export function CategoryDetails() {
                 value={formData.names?.uz || ""}
                 onChange={handleChange}
                 required
-                placeholder="Введите название"
+                placeholder={t('enterName')}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               />
             </div>
@@ -560,7 +503,7 @@ export function CategoryDetails() {
                 value={formData.names?.ru || ""}
                 onChange={handleChange}
                 required
-                placeholder="Введите название"
+                placeholder={t('enterName')}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               />
             </div>
@@ -578,7 +521,7 @@ export function CategoryDetails() {
                 value={formData.names?.en || ""}
                 onChange={handleChange}
                 required
-                placeholder="Введите название"
+                placeholder={t('enterName')}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               />
             </div>
@@ -596,17 +539,16 @@ export function CategoryDetails() {
                 value={formData.names?.kr || ""}
                 onChange={handleChange}
                 required
-                placeholder="Введите название"
+                placeholder={t('enterName')}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               />
             </div>
           </div>
 
-          {/* Поля для описаний */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="mb-4">
               <label
-                htmlFor="description_uz"
+                htmlFor={t('description_uz')}
                 className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 {t("description_uz")}
@@ -617,14 +559,14 @@ export function CategoryDetails() {
                 value={formData.descriptions?.uz || ""}
                 onChange={handleChange}
                 required
-                placeholder="Введите описание"
+                placeholder={t('enterDescraption')}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               />
             </div>
 
             <div className="mb-4">
               <label
-                htmlFor="description_ru"
+                htmlFor={t("description_ru")}
                 className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 {t("description_ru")}
@@ -635,14 +577,14 @@ export function CategoryDetails() {
                 value={formData.descriptions?.ru || ""}
                 onChange={handleChange}
                 required
-                placeholder="Введите описание"
+                placeholder={t('enterDescraption')}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               />
             </div>
 
             <div className="mb-4">
               <label
-                htmlFor="description_en"
+                htmlFor={t("description_en")}
                 className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 {t("description_en")}
@@ -653,14 +595,14 @@ export function CategoryDetails() {
                 value={formData.descriptions?.en || ""}
                 onChange={handleChange}
                 required
-                placeholder="Введите описание"
+                placeholder={t('enterDescraption')}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               />
             </div>
 
             <div className="mb-4">
               <label
-                htmlFor="description_kr"
+                htmlFor={t("description_kr")}
                 className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
               >
                 {t("description_kr")}
@@ -671,54 +613,54 @@ export function CategoryDetails() {
                 value={formData.descriptions?.kr || ""}
                 onChange={handleChange}
                 required
-                placeholder="Введите описание"
+                placeholder={t('enterDescraption')}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               />
             </div>
           </div>
 
-          {/* Поле для изображений */}
           <div className="mb-6">
-            <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-              {t("images")}
-            </label>
-            <input
-              type="file"
-              multiple
-              onChange={handleImageChange}
-              accept="image/*"
-              className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600"
-            />
+          <div className="flex flex-col gap-2">
+      <label className="cursor-pointer bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition text-center">
+       {t('selectImages')}
+        <input
+          type="file"
+          multiple
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileSelect}
+        />
+      </label>
+      <span className="text-gray-400 text-sm">{fileNames}</span>
+    </div>
 
             <div className="flex gap-2 mt-2">
-  {formData.images?.map((file, index) => (
-    <div key={index} className="relative">
-      {file instanceof File ? ( 
-        <img
-          src={URL.createObjectURL(file)}
-          alt="preview"
-          className="w-20 h-20 object-cover rounded-md"
-        />
-      ) : (
-        <img
-          src={file} 
-          alt="preview"
-          className="w-20 h-20 object-cover rounded-md"
-        />
-      )}
-      <button
-        onClick={() => handleRemoveImage(index)}
-        className="absolute top-0 right-0 bg-red-600 text-white text-xs p-1 rounded-full hover:bg-red-700 transition-colors"
-      >
-        ✕
-      </button>
-    </div>
-  ))}
-</div>
-
+              {formData.images?.map((file, index) => (
+                <div key={index} className="relative">
+                  {file instanceof File ? (
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt="preview"
+                      className="w-20 h-20 object-cover rounded-md"
+                    />
+                  ) : (
+                    <img
+                      src={file}
+                      alt="preview"
+                      className="w-20 h-20 object-cover rounded-md"
+                    />
+                  )}
+                  <button
+                    onClick={() => handleRemoveImage(index)}
+                    className="absolute top-0 right-0 bg-red-600 text-white text-xs p-1 rounded-full hover:bg-red-700 transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Поле для цены */}
           <div className="mb-6">
             <label
               htmlFor="price"
@@ -733,20 +675,12 @@ export function CategoryDetails() {
               value={formData.price || ""}
               onChange={handleChange}
               required
-              placeholder="Введите цену"
+              placeholder={t('enterPrice')}
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             />
           </div>
 
-          {/* Кнопки */}
           <div className="flex justify-end gap-4">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="bg-gray-300 text-gray-700 rounded-lg px-4 py-2 font-semibold hover:bg-gray-400 transition"
-            >
-              {t("cancel")}
-            </button>
             <button
               type="submit"
               className="bg-blue-600 text-white rounded-lg px-4 py-2 font-semibold hover:bg-blue-700 transition"

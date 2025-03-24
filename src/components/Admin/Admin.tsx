@@ -138,29 +138,25 @@ export function Admin() {
   const handleEdit = (category: Category) => {
     setFormData({
       id: category.id,
-      //@ts-ignore
-      name_uz: category.name_uz || null,
-      //@ts-ignore
-      name_kr: category.name_kr || null,
-      //@ts-ignore
-      name_ru: category.name_ru || null,
-      //@ts-ignore
-      name_en: category.name_en || null,
+      name_uz: category.name_uz || "",
+      name_kr: category.name_kr || "",
+      name_ru: category.name_ru || "",
+      name_en: category.name_en || "",
     });
     setIsEdit(true);
   };
 
-  const handleUpdate = async (id: number, e: React.FormEvent) => {
-    e.preventDefault();
-  
-    if (!id) {
+  const handleUpdate = async () => {
+    // e.preventDefault();
+
+    if (!formData.id) {
       console.error("Ошибка: ID не указан");
       return;
     }
-  
+
     try {
       const requestData = {
-        id: formData.id,
+        id: formData.id, 
         names: {
           ru: formData.name_ru.trim(),
           en: formData.name_en.trim(),
@@ -168,19 +164,18 @@ export function Admin() {
           kr: formData.name_kr.trim(),
         },
       };
-  
+
       console.log("Отправляемые данные:", JSON.stringify(requestData, null, 2));
-  
+
       await patchRequest(requestData);
-  
+
       setIsEdit(false);
-  
-      // 🔥 Добавляем обновление данных после запроса
+      refetch(); // Обновляем данные после успешного обновления
     } catch (error) {
       console.error("Ошибка обновления:", error);
     }
   };
-  
+
   const checkScrollTop = () => {
     if (!showScrollButton && window.pageYOffset > 200) {
       setShowScrollButton(true);
@@ -217,7 +212,6 @@ export function Admin() {
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger className="flex  items-center w-full [&>*:last-child]:hidden">
                   <ChevronLeft className="h-4 w-4 transition-transform data-[state=open]:rotate-90" />
-
                   {t("select_language")}
                 </DropdownMenuSubTrigger>
 
@@ -247,7 +241,7 @@ export function Admin() {
             placeholder={t("search_placeholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full"
+            className="w-full dark:bg-gray-800"
           />
         </div>
       </div>
@@ -280,9 +274,9 @@ export function Admin() {
                     <span>{new Date(e.created_at).toLocaleString()}</span>
                   </div>
                   <div className="flex sm:flex-row flex-col justify-between text-sm text-gray-500">
-  <span className="font-medium">{t("updated_at")}</span>
-  <span>{new Date(e.updated_at).toLocaleString()}</span>
-</div>
+                    <span className="font-medium">{t("updated_at")}</span>
+                    <span>{new Date(e.updated_at).toLocaleString()}</span>
+                  </div>
                 </CardContent>
 
                 <CardFooter className="mt-4 flex justify-end gap-5">
@@ -290,9 +284,8 @@ export function Admin() {
                     variant="outline"
                     onClick={(event) => {
                       event.stopPropagation();
-                      //@ts-ignore
-                      handleEdit(e.id);
-                    }}
+                      handleEdit(e); // Передаём правильный объект категории
+                    }}                    
                     className="hover:bg-green-800 hover:text-white transition px-3 py-2 bg-green-700 rounded-lg flex items-center dark:bg-green-600 dark:hover:bg-green-700"
                   >
                     <img
@@ -414,11 +407,16 @@ export function Admin() {
       >
         <form
           onSubmit={(e) => {
-            if (formData.id !== undefined) {
-              handleUpdate(formData.id, e);
-            } else {
+            e.preventDefault();
+
+            if (!formData.id) {
               console.error("Ошибка: ID не задан");
+              return;
             }
+
+            handleUpdate(
+              //@ts-ignore
+              formData.id, e);
           }}
           className="space-y-4"
         >
@@ -432,7 +430,7 @@ export function Admin() {
             <Input
               id="name_uz"
               name="name_uz"
-              value={formData.name_uz}
+              value={formData.name_uz ?? ""}
               onChange={handleChange}
               className="input dark:bg-gray-700 dark:border-gray-600"
             />
@@ -448,7 +446,7 @@ export function Admin() {
             <Input
               id="name_ru"
               name="name_ru"
-              value={formData.name_ru}
+              value={formData.name_ru ?? ""}
               onChange={handleChange}
               className="input dark:bg-gray-700 dark:border-gray-600"
             />
@@ -464,7 +462,7 @@ export function Admin() {
             <Input
               id="name_en"
               name="name_en"
-              value={formData.name_en}
+              value={formData.name_en ?? ""}
               onChange={handleChange}
               className="input dark:bg-gray-700 dark:border-gray-600"
             />
@@ -480,7 +478,7 @@ export function Admin() {
             <Input
               id="name_kr"
               name="name_kr"
-              value={formData.name_kr}
+              value={formData.name_kr ?? ""}
               onChange={handleChange}
               className="input dark:bg-gray-700 dark:border-gray-600"
             />

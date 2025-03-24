@@ -1,22 +1,24 @@
 import { Grid, Utensils } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import {Admin} from "../Admin/Admin";
-import {CategoryDetails} from "../CategoryDetalis/CategoryDetalis";
+import { Admin } from "../Admin/Admin";
+import { CategoryDetails } from "../CategoryDetalis/CategoryDetalis";
+import { useTranslation } from "react-i18next";
 
 const BottomNav = () => {
   const [active, setActive] = useState("category");
+  const { t } = useTranslation();
 
   const navItems = [
-    { id: "category", label: "Категории", icon: Grid },
-    { id: "foods", label: "Блюда", icon: Utensils },
+    { id: "category", label: t('category'), icon: Grid },
+    { id: "foods", label: t('food'), icon: Utensils },
   ];
 
   return (
     <div className="min-h-screen pb-14">
       <div className="p-4">
-        {active === "category" && < Admin/>}
-        {active === "foods" && < CategoryDetails />}
+        {active === "category" && <Admin />}
+        {active === "foods" && <CategoryDetails />}
       </div>
 
       <nav className="fixed bottom-0 left-0 w-full z-100 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 p-2">
@@ -27,7 +29,7 @@ const BottomNav = () => {
               onClick={() => setActive(id)}
               className={cn(
                 "flex flex-col items-center gap-1 text-gray-500 dark:text-gray-400 transition",
-                active === id && "text-primary"
+                active === id && "text-primary",
               )}
             >
               <Icon size={24} />

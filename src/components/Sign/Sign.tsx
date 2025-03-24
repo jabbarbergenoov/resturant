@@ -48,11 +48,11 @@ export function Sign() {
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let rawValue = e.target.value.replace(/\D/g, ""); 
-    if (!rawValue.startsWith("998")) rawValue = "998"; 
-    if (rawValue.length > 12) return; 
+    let rawValue = e.target.value.replace(/\D/g, "");
+    if (!rawValue.startsWith("998")) rawValue = "998";
+    if (rawValue.length > 12) return;
 
-    setPhone("+" + rawValue); 
+    setPhone("+" + rawValue);
   };
 
   return (
