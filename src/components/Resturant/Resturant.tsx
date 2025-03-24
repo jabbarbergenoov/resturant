@@ -39,7 +39,7 @@ export function Resturant() {
     data: menu,
     loading: menuLoading,
     error: menuError,
-  } = useFetch<Category[]>("http://16.171.7.103:8000/categorie", {
+  } = useFetch<Category[]>("https://techflow.duckdns.org/categorie", {
     lang_code: lang,
   });
 
@@ -81,7 +81,7 @@ export function Resturant() {
     //@ts-ignore
 
     selectedCategoryId
-      ? `http://16.171.7.103:8000/food?categorie_id=${selectedCategoryId}&lang_code=${lang}`
+      ? `https://techflow.duckdns.org/food?categorie_id=${selectedCategoryId}&lang_code=${lang}`
       : null,
   );
 

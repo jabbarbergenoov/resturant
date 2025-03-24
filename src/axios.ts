@@ -44,7 +44,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       console.log("Unauthorized, redirecting to login...");
       // Перенаправляем на страницу входа
-      window.location.href = "/";
+      window.location.href = "/Login";
     }
     return Promise.reject(error);
   },

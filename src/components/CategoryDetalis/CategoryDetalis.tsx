@@ -100,7 +100,7 @@ export function CategoryDetails() {
 
   const {
     data: categoriesList = [],
-  } = useFetch<Category[]>("http://16.171.7.103:8000/categorie", {
+  } = useFetch<Category[]>("https://techflow.duckdns.org/categorie", {
     lang_code: lang,
   });
 
@@ -109,7 +109,7 @@ export function CategoryDetails() {
     loading: foodsLoading,
     error: foodsError,
     refetch: foodsRefetch,
-  } = useFetch<Food[]>("http://16.171.7.103:8000/food", {
+  } = useFetch<Food[]>("https://techflow.duckdns.org/food", {
     lang_code: lang,
     name: search
   });
@@ -142,13 +142,13 @@ export function CategoryDetails() {
     console.log("Filtered Categories:", filteredCategories);
   }, [categoriesList, filteredCategories]);
 
-  const { postRequest } = usePostRequest("http://16.171.7.103:8000/food");
+  const { postRequest } = usePostRequest("https://techflow.duckdns.org/food");
 
   useEffect(() => {
     const fetchCategory = async () => {
       try {
         const response = await fetch(
-          `http://16.171.7.103:8000/categorie/${id}`,
+          `https://techflow.duckdns.org/categorie/${id}`,
           {
             method: "GET",
             headers: {
@@ -225,7 +225,7 @@ export function CategoryDetails() {
     });
 
     try {
-      const response = await fetch("http://16.171.7.103:8000/food/image", {
+      const response = await fetch("https://techflow.duckdns.org/food/image", {
         method: "POST",
         body: formDataToSend,
         headers: {
