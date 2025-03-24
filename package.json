@@ -29,6 +29,7 @@
     "react-i18next": "^15.4.1",
     "react-input-mask": "^2.0.4",
     "react-router-dom": "^7.3.0",
+    "resturant-menu": "file:",
     "shadcn": "^2.4.0-canary.17",
     "tailwind-merge": "^3.0.2",
     "tailwind-variants": "^1.0.0",
