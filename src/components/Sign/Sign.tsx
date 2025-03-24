@@ -18,7 +18,7 @@ export function Sign() {
   const [phone, setPhone] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { loading, error, postRequest } = usePostRequest<LoginResponse>(
-    "https://techflow.duckdns.org/auth/sign",
+    "https://techflow.duckdns.org/api/auth/sign",
     false,
   );
 

@@ -53,16 +53,16 @@ export function Admin() {
     refetch,
   } = useFetch<
     { id: number; name: string; created_at: string; updated_at: string }[]
-  >("https://techflow.duckdns.org/categorie", {
+  >("https://techflow.duckdns.org/api/categorie", {
     lang_code: lang,
     [searchField]: search,
   });
 
   const { patchRequest, loading: patchLoading } = usePatchRequest(
-    "https://techflow.duckdns.org/categorie",
+    "https://techflow.duckdns.org/api/categorie",
   );
 
-  const { postRequest } = usePostRequest("https://techflow.duckdns.org/categorie");
+  const { postRequest } = usePostRequest("https://techflow.duckdns.org/api/categorie");
   const [formData, setFormData] = useState<{
     id?: number | undefined;
     name_uz: string;
@@ -114,7 +114,7 @@ export function Admin() {
     try {
       const token = localStorage.getItem("accessToken");
 
-      const response = await fetch(`https://techflow.duckdns.org/categorie/${id}`, {
+      const response = await fetch(`https://techflow.duckdns.org/api/categorie/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -258,7 +258,7 @@ export function Admin() {
             categorieData.map((e) => (
               <Card
                 key={e.id}
-                className="p-2 cursor-pointer dark:bg-gray-900 bg-white shadow-lg rounded-xl flex flex-col justify-between"
+                className="p-2 cursor-pointer dark:bg-gray-900 dark:border-2 dark:border-x-gray-950 bg-white shadow-lg rounded-xl flex flex-col justify-between"
               >
                 <CardHeader className="border-b pb-3">
                   <div className="flex justify-between items-center">
