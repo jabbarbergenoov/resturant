@@ -1,31 +1,29 @@
-#Use the Node.js base image
+# Use an official Node.js image
 FROM node:22-alpine
 
 # Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Copy package.json and package-lock.json first to leverage Docker cache
 COPY package*.json ./
 
-# Install dependencies
-RUN npm cache clean --force && npm install --force
+# Install dependencies cleanly
+RUN npm ci --force
 
+# Install the latest npm globally (if needed)
 RUN npm install -g npm@latest
 
-RUN npm install --force
-
 # Install serve globally
-RUN npm i -g serve
+RUN npm install -g serve
 
-# Copy the rest of the files
+# Copy the rest of the application files
 COPY . .
 
 # Build the project
 RUN npm run build
 
-# Expose the correct port
+# Expose frontend and backend ports
 EXPOSE 3001
-EXPOSE 8000
 
-# Run the app using 'serve' and explicitly set the port
-CMD [ "serve", "-s", "dist", "-l", "3001" ]
+# Serve the frontend
+CMD ["serve", "-s", "dist", "-l", "3001"]
