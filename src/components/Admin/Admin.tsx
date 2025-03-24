@@ -53,16 +53,16 @@ export function Admin() {
     refetch,
   } = useFetch<
     { id: number; name: string; created_at: string; updated_at: string }[]
-  >("http://16.171.7.103:8000/categorie", {
+  >("https://techflow.duckdns.org/categorie", {
     lang_code: lang,
     [searchField]: search,
   });
 
   const { patchRequest, loading: patchLoading } = usePatchRequest(
-    "http://16.171.7.103:8000/categorie",
+    "https://techflow.duckdns.org/categorie",
   );
 
-  const { postRequest } = usePostRequest("http://16.171.7.103:8000/categorie");
+  const { postRequest } = usePostRequest("https://techflow.duckdns.org/categorie");
   const [formData, setFormData] = useState<{
     id?: number | undefined;
     name_uz: string;
@@ -114,7 +114,7 @@ export function Admin() {
     try {
       const token = localStorage.getItem("accessToken");
 
-      const response = await fetch(`http://16.171.7.103:8000/categorie/${id}`, {
+      const response = await fetch(`https://techflow.duckdns.org/categorie/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
