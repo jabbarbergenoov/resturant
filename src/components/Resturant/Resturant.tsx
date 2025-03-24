@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card } from "../Card/Card";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Menu ,Loader} from "lucide-react";
+import { Menu, Loader } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,19 +35,22 @@ export function Resturant() {
   const { t, i18n } = useTranslation();
   const lang = localStorage.getItem("i18nextLng") || "en";
 
-  const { data: menu, loading: menuLoading, error: menuError } = useFetch<Category[]>(
-    "http://16.171.7.103:8000/categorie",
-    {
-      lang_code: lang,
-    },
-  );
+  const {
+    data: menu,
+    loading: menuLoading,
+    error: menuError,
+  } = useFetch<Category[]>("http://16.171.7.103:8000/categorie", {
+    lang_code: lang,
+  });
 
   const [theme, setTheme] = useState(
     typeof window !== "undefined"
       ? localStorage.getItem("theme") || "light"
       : "light",
   );
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+    null,
+  );
   const [selectedCategory, setSelectedCategory] = useState<Food[]>([]);
   const [visibleCategories, setVisibleCategories] = useState<number>(3);
   const [_, setIsThemeSelectionOpen] = useState(false);
@@ -76,11 +79,17 @@ export function Resturant() {
     error: categoryError,
   } = useFetch<Food[]>(
     //@ts-ignore
-    
+
     selectedCategoryId
       ? `http://16.171.7.103:8000/food?categorie_id=${selectedCategoryId}&lang_code=${lang}`
-      : null
+      : null,
   );
+
+  useEffect(() => {
+    if (menu && menu.length > 0 && selectedCategoryId === null) {
+      setSelectedCategoryId(menu[0].id);
+    }
+  }, [menu]);
 
   useEffect(() => {
     if (categoryItems) {
@@ -89,7 +98,7 @@ export function Resturant() {
   }, [categoryItems]);
 
   if (menuLoading) {
-    return           <Loader className="animate-spin w-10 h-10 text-gray-500" />
+    return <Loader className="animate-spin w-10 h-10 text-gray-500" />;
   }
 
   if (menuError) {
@@ -193,7 +202,7 @@ export function Resturant() {
         </div>
 
         {categoryLoading ? (
-                    <Loader className="animate-spin w-10 h-10 text-gray-500" />
+          <Loader className="animate-spin w-10 h-10 text-gray-500" />
         ) : categoryError ? (
           <div>Ошибка: {categoryError}</div>
         ) : selectedCategory.length > 0 ? (
