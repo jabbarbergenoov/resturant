@@ -14,7 +14,7 @@ const FoodImage: React.FC<FoodImageProps> = ({ img, token }) => {
 
     const fetchImage = async () => {
       try {
-        const url = `https://techflow.duckdns.org/api/food/image/${img}`;
+        const url = `http://192.168.1.48:8000/food/image/${img}`;
 
         console.log("Отправляем GET-запрос:", url);
 

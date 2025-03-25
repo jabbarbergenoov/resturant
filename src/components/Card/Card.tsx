@@ -9,8 +9,6 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselPrevious,
-  CarouselNext,
 } from "@/components/ui/carousel";
 
 import FoodImage from "../FoodImage/FoodImage";
@@ -31,10 +29,12 @@ export function Card({
   token,
 }: CardProps) {
   return (
-    <ShadCard className="overflow-hidden shadow-md dark:bg-gray-800">
+    <ShadCard className="overflow-hidden shadow-md bg-white dark:bg-gray-900 dark:border-1 dark:border-gray-700">
       <CardHeader className="relative">
         {images.length > 1 ? (
-          <Carousel className="w-full max-w-md overflow-visible">
+          <Carousel className="w-full max-w-md overflow-visible"
+          //@ts-ignore
+          dots>
             <CarouselContent>
               {images.map((img, index) => (
                 <CarouselItem key={index} className="p-2">
@@ -42,25 +42,32 @@ export function Card({
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-50 p-2 border-0 text-white rounded-full shadow-md bg-yellow-500 dark:bg-yellow-500">
-              {"<"}
-            </CarouselPrevious>
-            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-50 text-white p-2 border-0 rounded-full shadow-md bg-yellow-500 dark:bg-yellow-500">
-              {">"}
-            </CarouselNext>
+
+            <div className="absolute left-1/2 -translate-x-1/2 flex space-x-1">
+              {images.map((_, i) => (
+                <span
+                  key={i}
+                  className="w-2 h-2 bg-gray-300 dark:bg-gray-600 rounded-full"
+                ></span>
+              ))}
+            </div>
           </Carousel>
         ) : images.length === 1 ? (
           <FoodImage img={images[0]} token={token} />
         ) : (
-          <p className="text-gray-400">Нет изображений</p>
+          <p className="text-gray-400 dark:text-gray-500">Нет изображений</p>
         )}
       </CardHeader>
       <CardContent>
-        <CardTitle className="text-xl">{name}</CardTitle>
-        <CardDescription className="text-gray-400">
+        <CardTitle className="text-xl text-gray-900 dark:text-white">
+          {name}
+        </CardTitle>
+        <CardDescription className="text-gray-500 dark:text-gray-400">
           {description}
         </CardDescription>
-        <p className="text-yellow-500 font-bold">{price} sum</p>
+        <p className="text-yellow-500 dark:text-yellow-400 font-bold">
+          {price} sum
+        </p>
       </CardContent>
     </ShadCard>
   );

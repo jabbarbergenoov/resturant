@@ -1,18 +1,26 @@
 import { Grid, Utensils } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Admin } from "../Admin/Admin";
 import { CategoryDetails } from "../CategoryDetalis/CategoryDetalis";
 import { useTranslation } from "react-i18next";
 
 const BottomNav = () => {
-  const [active, setActive] = useState("category");
   const { t } = useTranslation();
-
   const navItems = [
-    { id: "category", label: t('category'), icon: Grid },
-    { id: "foods", label: t('food'), icon: Utensils },
+    { id: "category", label: t("category"), icon: Grid },
+    { id: "foods", label: t("food"), icon: Utensils },
   ];
+
+  // Загружаем активный таб из localStorage или ставим дефолтный
+  const [active, setActive] = useState(() => {
+    return localStorage.getItem("activeTab") || "category";
+  });
+
+  // Сохраняем активный таб при изменении
+  useEffect(() => {
+    localStorage.setItem("activeTab", active);
+  }, [active]);
 
   return (
     <div className="min-h-screen pb-14">
@@ -29,7 +37,7 @@ const BottomNav = () => {
               onClick={() => setActive(id)}
               className={cn(
                 "flex flex-col items-center gap-1 text-gray-500 dark:text-gray-400 transition",
-                active === id && "text-primary",
+                active === id && "text-primary"
               )}
             >
               <Icon size={24} />

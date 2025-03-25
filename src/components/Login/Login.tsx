@@ -18,7 +18,7 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { loading, error, postRequest } = usePostRequest<LoginResponse>(
-    "https://techflow.duckdns.org/api/auth/login",
+    "http://192.168.1.48:8000/auth/login",
     false,
   );
 

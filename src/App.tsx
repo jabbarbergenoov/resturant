@@ -12,7 +12,7 @@ import { Sign } from "./components/Sign/Sign";
 import { CategoryDetails } from "./components/CategoryDetalis/CategoryDetalis";
 import { Admin } from "./components/Admin/Admin";
 import BottomNav from "./components/BottomNav/BottomNav";
-import {NotFound} from './components/NotFound/NotFound'
+import { NotFound } from "./components/NotFound/NotFound";
 
 function App() {
   const [theme] = useState(localStorage.getItem("theme") || "light");

@@ -53,16 +53,16 @@ export function Admin() {
     refetch,
   } = useFetch<
     { id: number; name: string; created_at: string; updated_at: string }[]
-  >("https://techflow.duckdns.org/api/categorie", {
+  >("http://192.168.1.48:8000/categorie", {
     lang_code: lang,
     [searchField]: search,
   });
 
   const { patchRequest, loading: patchLoading } = usePatchRequest(
-    "https://techflow.duckdns.org/api/categorie",
+    "http://192.168.1.48:8000/categorie",
   );
 
-  const { postRequest } = usePostRequest("https://techflow.duckdns.org/api/categorie");
+  const { postRequest } = usePostRequest("http://192.168.1.48:8000/categorie");
   const [formData, setFormData] = useState<{
     id?: number | undefined;
     name_uz: string;
@@ -114,7 +114,7 @@ export function Admin() {
     try {
       const token = localStorage.getItem("accessToken");
 
-      const response = await fetch(`https://techflow.duckdns.org/api/categorie/${id}`, {
+      const response = await fetch(`http://192.168.1.48:8000/categorie/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -156,7 +156,7 @@ export function Admin() {
 
     try {
       const requestData = {
-        id: formData.id, 
+        id: formData.id,
         names: {
           ru: formData.name_ru.trim(),
           en: formData.name_en.trim(),
@@ -258,9 +258,9 @@ export function Admin() {
             categorieData.map((e) => (
               <Card
                 key={e.id}
-                className="p-2 cursor-pointer dark:bg-gray-900 dark:border-2 dark:border-x-gray-950 bg-white shadow-lg rounded-xl flex flex-col justify-between"
+                className="p-2 cursor-pointer dark:bg-gray-900 dark:border-1 dark:border-gray-500 bg-white shadow-lg rounded-xl flex flex-col justify-between"
               >
-                <CardHeader className="border-b pb-3">
+                <CardHeader className="border-b border-gray-400 pb-3">
                   <div className="flex justify-between items-center">
                     <CardTitle className="text-lg font-semibold">
                       {e.name}
@@ -285,7 +285,7 @@ export function Admin() {
                     onClick={(event) => {
                       event.stopPropagation();
                       handleEdit(e); // Передаём правильный объект категории
-                    }}                    
+                    }}
                     className="hover:bg-green-800 hover:text-white transition px-3 py-2 bg-green-700 rounded-lg flex items-center dark:bg-green-600 dark:hover:bg-green-700"
                   >
                     <img
@@ -416,7 +416,9 @@ export function Admin() {
 
             handleUpdate(
               //@ts-ignore
-              formData.id, e);
+              formData.id,
+              e,
+            );
           }}
           className="space-y-4"
         >

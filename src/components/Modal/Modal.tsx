@@ -20,7 +20,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/5 flex items-center justify-center z-999"
+      className="fixed inset-0 bg-black/85 flex items-center justify-center z-999"
       onClick={onClose}
     >
       <div

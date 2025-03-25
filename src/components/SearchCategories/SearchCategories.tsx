@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-import { useTranslation } from "react-i18next";
 
 interface Category {
   id: number;
@@ -11,20 +10,23 @@ interface Category {
 interface SearchCategoriesProps {
   categories: Category[];
   onSelect: (category: Category) => void;
+  onSubmit: (selectedCategories: Category[]) => void;
 }
 
-const SearchCategories: React.FC<SearchCategoriesProps> = ({ categories, onSelect }) => {
+const SearchCategories: React.FC<SearchCategoriesProps> = ({
+  categories,
+  onSelect,
+  onSubmit,
+}) => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(0);
   const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
 
-  const { t } = useTranslation();
-
   useEffect(() => {
     if (searchTerm) {
       const filtered = categories.filter((cat) =>
-        cat.name.toLowerCase().includes(searchTerm.toLowerCase())
+        cat.name.toLowerCase().includes(searchTerm.toLowerCase()),
       );
       setFilteredCategories(filtered);
       setHighlightedIndex(0);
@@ -33,28 +35,20 @@ const SearchCategories: React.FC<SearchCategoriesProps> = ({ categories, onSelec
     }
   }, [searchTerm, categories]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "ArrowDown") {
-      setHighlightedIndex((prev) => (prev + 1) % filteredCategories.length);
-    } else if (e.key === "ArrowUp") {
-      setHighlightedIndex((prev) =>
-        prev === 0 ? filteredCategories.length - 1 : prev - 1
-      );
-    } else if (e.key === "Enter" && filteredCategories[highlightedIndex]) {
-      handleSelect(filteredCategories[highlightedIndex]);
-    }
-  };
-
   const handleSelect = (category: Category) => {
     if (!selectedCategories.some((cat) => cat.id === category.id)) {
-      setSelectedCategories([...selectedCategories, category]);
+      const newCategories = [...selectedCategories, category];
+      setSelectedCategories(newCategories);
+      onSelect(category);
+      onSubmit(newCategories); // ✅ Передаём актуальный список выбранных категорий
     }
     setSearchTerm("");
-    onSelect(category);
   };
 
   const removeCategory = (id: number) => {
-    setSelectedCategories(selectedCategories.filter((cat) => cat.id !== id));
+    const newCategories = selectedCategories.filter((cat) => cat.id !== id);
+    setSelectedCategories(newCategories);
+    onSubmit(newCategories); // ✅ Обновляем список после удаления
   };
 
   return (
@@ -63,8 +57,7 @@ const SearchCategories: React.FC<SearchCategoriesProps> = ({ categories, onSelec
         type="text"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={t("search_placeholder")}
+        placeholder="Поиск категорий..."
         className="w-full p-2 border mt-2 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700"
       />
       <AnimatePresence>
@@ -80,17 +73,14 @@ const SearchCategories: React.FC<SearchCategoriesProps> = ({ categories, onSelec
                 <motion.li
                   key={cat.id}
                   className={`p-2 cursor-pointer transition ${
-                    highlightedIndex === index ? "bg-blue-100 dark:bg-gray-500" : ""
+                    highlightedIndex === index
+                      ? "bg-blue-100 dark:bg-gray-500"
+                      : ""
                   }`}
-                  onMouseEnter={() => setHighlightedIndex(index)}
                   onClick={() => handleSelect(cat)}
-                  dangerouslySetInnerHTML={{
-                    __html: cat.name.replace(
-                      new RegExp(`(${searchTerm})`, "gi"),
-                      (match) => `<span class='font-bold text-blue-600 dark:text-white'>${match}</span>`
-                    ),
-                  }}
-                ></motion.li>
+                >
+                  {cat.name}
+                </motion.li>
               ))
             ) : (
               <li className="p-2 text-gray-500">Категории не найдены</li>
